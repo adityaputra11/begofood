@@ -1,34 +1,53 @@
 # Begofood AI
 
-Purwarupa skripsi sistem rekomendasi menu berbasis multi-agent Google ADK, NestJS, Prisma/PostgreSQL, dan React Vite. Sistem memadukan batasan alergi, pola diet, dan preferensi sensoris untuk menyaring serta menjelaskan rekomendasi menu.
+Purwarupa skripsi sistem rekomendasi menu berbasis **multi-agent AI** dengan Google ADK, NestJS, Prisma/PostgreSQL, Bull MQ, dan React Vite. Sistem memadukan **Medical Agent** (filter alergi) dan **Psychological Agent** (preferensi rasa) untuk menyaring serta merekomendasikan menu.
 
-## Fitur utama
+## Fitur Utama
 
-- katalog riset 36 menu dari tiga klaster restoran;
-- profil alergi dan diet yang persisten;
-- penyaringan menu deterministik sebelum respons LLM;
-- metadata bahan tersembunyi dan risiko kontaminasi silang;
-- scoring kecocokan karakter sensoris;
-- UI responsif desktop/mobile dengan preventive action;
-- menu berisiko ditandai, dijelaskan, dan tombolnya dikunci;
-- chat multi-agent untuk rekomendasi, resep, dan informasi nutrisi;
-- metadata latency pada respons katalog untuk kebutuhan evaluasi.
+- **Multi-Agent AI** — Google ADK dengan DeepSeek V4 Pro + Exa search untuk analisis menu otomatis
+- **Medical Agent** — filter menu berdasarkan alergi (kacang, susu, telur, seafood)
+- **Psychological Agent** — cocokkan preferensi rasa (pedas, manis, pahit, gurih) dengan sensory profile menu
+- **Background Analysis** — Bull MQ + Redis untuk async processing analisis menu via AI
+- **Real-time Notifikasi** — SSE stream untuk progress analysis (Admin panel)
+- **Match Score** — multi-criteria weighted scoring (safety 40 + sensory 20 + preferred taste 20)
+- **Persona System** — 3 persona bawaan (Andi, Budi, Dedi) dengan preferensi berbeda
+- **Admin Panel** — CRUD menu, trigger analysis ulang, login auth (admin/Password123!)
+- **36 Menu Riset** — dari 3 klaster restoran (Western & Indonesia, Chinese Food, Seafood)
+- **UI Responsif** — desktop & mobile dengan preventive action
 
-Detail metodologi dataset ada di [docs/RESEARCH_CATALOG.md](docs/RESEARCH_CATALOG.md).
-
-## Struktur monorepo
+## Struktur Monorepo
 
 ```text
 apps/
-├── backend/   # NestJS, Google ADK, Prisma, PostgreSQL, Redis
-└── frontend/  # React, Vite, responsive web UI
+├── backend/     # NestJS, Google ADK, Prisma, Bull MQ, Redis
+├── frontend/    # React (Vite) — User app (port 5173)
+└── admin/       # React (Vite) — Admin panel (port 5174)
+docs/
+├── RESEARCH_CATALOG.md      # Detail dataset 36 menu
+└── MATCH_SCORE_METHOD.md    # Metode scoring multi-criteria
 ```
 
-Dependency dikelola dari root dengan pnpm workspace. Setiap aplikasi tetap memiliki `package.json` dan lifecycle sendiri.
+## Persyaratan
 
-## Menjalankan lokal
+- Node.js 20+
+- pnpm
+- PostgreSQL (via Supabase)
+- Redis (via Upstash)
+- API Key: Nebius AI, Exa Search
 
-Kebutuhan: Node.js 20+, pnpm, PostgreSQL, dan Redis. Salin `apps/backend/.env.example` menjadi `apps/backend/.env`, lalu isi kredensial database dan provider LLM.
+## Menjalankan Lokal
+
+1. Salin `apps/backend/.env.example` → `apps/backend/.env`, isi kredensial:
+
+```env
+DATABASE_URL="postgresql://..."
+REDIS_URL="redis://..."
+NEBIUS_API_KEY="..."
+EXA_API_KEY="..."
+AGENT_MODEL="deepseek-ai/DeepSeek-V4-Pro"
+```
+
+2. Install, migrate, seed, dan jalankan:
 
 ```bash
 pnpm install
@@ -38,32 +57,54 @@ pnpm prisma:seed
 pnpm dev
 ```
 
-Perintah `pnpm dev` menjalankan backend dan frontend bersamaan. Untuk menjalankan secara terpisah:
+3. Buka di browser:
+   - **User App** → `http://localhost:5173`
+   - **Admin Panel** → `http://localhost:5174` (login: `admin` / `Password123!`)
+   - **Backend API** → `http://localhost:3000`
 
-```bash
-pnpm dev:backend
-pnpm dev:frontend
-```
+## Endpoint API
 
-Backend berjalan di `http://localhost:3000` dan frontend di `http://localhost:5173`.
+| Method | Path | Fungsi |
+|--------|------|--------|
+| `GET` | `/agent/menu?userId=...` | Menu filtered by preferences |
+| `GET` | `/agent/personas` | Daftar persona |
+| `GET` | `/agent/preferences?userId=...` | Baca preferensi user |
+| `POST` | `/agent/preferences` | Simpan preferensi user |
+| `GET` | `/agent/menus` | Semua menu (admin) |
+| `POST` | `/agent/menu` | Tambah menu + jadwalkan AI analysis |
+| `PUT` | `/agent/menu/:id` | Update menu |
+| `DELETE` | `/agent/menu/:id` | Hapus menu |
+| `POST` | `/agent/analyze` | Trigger AI analysis |
+| `GET` | `/agent/analysis/stream` | SSE stream analysis progress |
 
-## Endpoint penting
+## Persona
 
-| Method | Path                            | Fungsi                                                    |
-| ------ | ------------------------------- | --------------------------------------------------------- |
-| `GET`  | `/agent/menu?userId=...`        | Rekomendasi aman, menu berisiko, explanation, dan latency |
-| `GET`  | `/agent/preferences?userId=...` | Membaca profil alergi/diet                                |
-| `POST` | `/agent/preferences`            | Menyimpan profil alergi/diet                              |
-| `POST` | `/agent/chat`                   | Percakapan dengan orchestrator ADK                        |
-| `POST` | `/agent/menu`                   | Menambah menu dan menjadwalkan analisis knowledge agent   |
+| Persona | Alergi | ID |
+|---------|--------|----|
+| Andi 👨‍🍳 | Tidak ada | `persona-andi` |
+| Budi 🥜 | Kacang, Seafood | `persona-budi` |
+| Dedi 💪 | Telur | `persona-dedi` |
 
-Filter katalog yang didukung: `search`, `category`, `cluster`, dan `sensory` (dipisahkan koma).
+## Tech Stack
 
-## Verifikasi
+| Layer | Teknologi |
+|-------|-----------|
+| **Framework** | NestJS 11 |
+| **Agent SDK** | Google ADK 1.3 |
+| **LLM Provider** | Nebius AI (DeepSeek V4 Pro) |
+| **Database** | Supabase PostgreSQL + Prisma 7 |
+| **Queue** | Bull MQ + Upstash Redis |
+| **Search** | Exa API |
+| **Frontend User** | React 19 + Vite 7 |
+| **Frontend Admin** | React 19 + Vite 7 |
+| **Auth** | Built-in (admin/Password123!) |
 
-```bash
-pnpm build
-pnpm test
-```
+## Skripsi
 
-Data medis dan hasil deteksi pada purwarupa ini adalah bantuan keputusan penelitian, bukan diagnosis atau jaminan bebas alergi.
+Dokumen pendukung:
+- `docs/MATCH_SCORE_METHOD.md` — metode multi-criteria weighted scoring
+- `docs/RESEARCH_CATALOG.md` — detail katalog 36 menu riset
+
+## Catatan
+
+Data medis dan hasil deteksi pada purwarupa ini adalah **bantuan keputusan penelitian**, bukan diagnosis atau jaminan bebas alergi.
