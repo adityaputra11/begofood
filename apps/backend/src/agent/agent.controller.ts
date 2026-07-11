@@ -118,11 +118,19 @@ export class AgentController {
     @Query('userId') userId: string,
     @Query('category') category?: string,
     @Query('search') search?: string,
+    @Query('cluster') cluster?: string,
+    @Query('sensory') sensory?: string,
   ) {
     try {
+      const startedAt = performance.now();
       const result = await this.agentService.getFilteredMenu(userId, {
         category,
         search,
+        cluster,
+        sensory: sensory
+          ?.split(',')
+          .map((value) => value.trim())
+          .filter(Boolean),
       });
 
       return {
@@ -132,6 +140,11 @@ export class AgentController {
           result.unsafe.length > 0
             ? `${result.safe.length} menu aman, ${result.unsafe.length} menu mengandung alergen Anda`
             : `${result.safe.length} menu tersedia`,
+        meta: {
+          processingMs: Number((performance.now() - startedAt).toFixed(2)),
+          evaluatedMenus: result.safe.length + result.unsafe.length,
+          generatedAt: new Date().toISOString(),
+        },
       };
     } catch (error) {
       throw new InternalServerErrorException(
@@ -152,8 +165,12 @@ export class AgentController {
           description: dto.description ?? null,
           price: dto.price,
           category: dto.category,
+          cluster: dto.cluster ?? 'western_indonesian',
+          restaurant: dto.restaurant ?? 'Begofood Kitchen',
           imageUrl: dto.imageUrl ?? null,
           ingredients: [],
+          hiddenIngredients: [],
+          sensoryProfile: [],
           allergens: [],
           tags: [],
           calories: null,

@@ -31,8 +31,23 @@ Panggil tool ini ketika user ingin:
           'Kategori menu. Contoh: "main_course", "dessert", "beverage", "snack", "appetizer"',
         ),
       search: z.string().optional().describe('Kata kunci pencarian nama menu'),
+      sensory: z
+        .array(z.string())
+        .optional()
+        .describe('Karakter sensoris, misalnya renyah, hangat, gurih, smoky'),
+      cluster: z
+        .enum(['western_indonesian', 'chinese_food', 'seafood'])
+        .optional()
+        .describe('Klaster restoran pada dataset penelitian'),
     }),
-    execute: async ({ allergies, diet, category, search }) => {
+    execute: async ({
+      allergies,
+      diet,
+      category,
+      search,
+      sensory,
+      cluster,
+    }) => {
       const safeWhere: Record<string, unknown> = {
         isAvailable: true,
         ...(allergies && allergies.length > 0
@@ -40,6 +55,8 @@ Panggil tool ini ketika user ingin:
           : {}),
         ...(diet ? { tags: { has: diet } } : {}),
         ...(category ? { category } : {}),
+        ...(cluster ? { cluster } : {}),
+        ...(sensory?.length ? { sensoryProfile: { hasSome: sensory } } : {}),
         ...(search
           ? { name: { contains: search, mode: 'insensitive' as const } }
           : {}),
@@ -56,6 +73,7 @@ Panggil tool ini ketika user ingin:
               isAvailable: true,
               allergens: { hasSome: allergies },
               ...(category ? { category } : {}),
+              ...(cluster ? { cluster } : {}),
               ...(search
                 ? { name: { contains: search, mode: 'insensitive' as const } }
                 : {}),

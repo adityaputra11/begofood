@@ -28,32 +28,27 @@ export interface MenuFilterInput {
   dislikedTags?: string[];
   category?: string;
   search?: string;
+  cluster?: string;
+  sensory?: string[];
 }
 
 export interface FilteredMenuResult {
-  safe: Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    price: number;
-    imageUrl: string | null;
-    category: string;
-    tags: string[];
-    allergens: string[];
-    calories: number | null;
-  }>;
-  unsafe: Array<{
-    id: string;
-    name: string;
-    description: string | null;
-    price: number;
-    imageUrl: string | null;
-    category: string;
-    tags: string[];
-    allergens: string[];
-    calories: number | null;
-    reason: string;
-  }>;
+  safe: Array<
+    Record<string, unknown> & {
+      safetyStatus: 'safe';
+      matchScore: number;
+      matchedSensory: string[];
+      recommendationReason: string;
+    }
+  >;
+  unsafe: Array<
+    Record<string, unknown> & {
+      safetyStatus: 'unsafe';
+      matchScore: number;
+      matchedSensory: string[];
+      reason: string;
+    }
+  >;
 }
 
 export interface UserPreferenceResult {
@@ -68,6 +63,7 @@ export class AgentService {
   private readonly logger = new Logger(AgentService.name);
   private runner: Runner | null = null;
   private sessionService: InMemorySessionService | null = null;
+  private readonly sessionUsers = new Map<string, string>();
   private initialized = false;
 
   constructor(private readonly prisma: PrismaService) {}
@@ -149,6 +145,7 @@ export class AgentService {
       userId: resolvedUserId,
       state: {},
     });
+    this.sessionUsers.set(session.id, resolvedUserId);
 
     return { sessionId: session.id };
   }
@@ -159,7 +156,12 @@ export class AgentService {
     userId?: string,
   ): Promise<string> {
     this.ensureReady();
-    const resolvedUserId = userId || `user_${crypto.randomUUID()}`;
+    const resolvedUserId = userId || this.sessionUsers.get(sessionId);
+    if (!resolvedUserId) {
+      throw new Error(
+        'Session tidak dikenali. Buat session baru atau kirim userId yang sama.',
+      );
+    }
 
     let response = '';
 
@@ -280,7 +282,22 @@ export class AgentService {
     const allergies = filters?.allergies ?? preferences.allergies;
     const diet = filters?.diet ?? preferences.diet;
     const dislikedTags = filters?.dislikedTags ?? preferences.dislikedTags;
-    const { category, search } = filters ?? {};
+    const { category, search, cluster } = filters ?? {};
+    const sensory = filters?.sensory ?? [];
+    const normalizedDiet = diet === 'none' ? null : diet;
+    const searchWhere = search
+      ? {
+          OR: [
+            { name: { contains: search, mode: 'insensitive' as const } },
+            {
+              description: {
+                contains: search,
+                mode: 'insensitive' as const,
+              },
+            },
+          ],
+        }
+      : {};
 
     // Menu AMAN
     const safeWhere: Record<string, unknown> = {
@@ -288,19 +305,18 @@ export class AgentService {
       ...(allergies.length > 0
         ? { NOT: { allergens: { hasSome: allergies } } }
         : {}),
-      ...(diet ? { tags: { has: diet } } : {}),
+      ...(normalizedDiet ? { tags: { has: normalizedDiet } } : {}),
       ...(dislikedTags.length > 0
         ? { NOT: { tags: { hasSome: dislikedTags } } }
         : {}),
       ...(category ? { category } : {}),
-      ...(search
-        ? { name: { contains: search, mode: 'insensitive' as const } }
-        : {}),
+      ...(cluster ? { cluster } : {}),
+      ...searchWhere,
     };
 
     const safeItems = await this.prisma.menu.findMany({
       where: safeWhere,
-      orderBy: { name: 'asc' },
+      orderBy: [{ rating: 'desc' }, { name: 'asc' }],
     });
 
     // Menu TIDAK AMAN
@@ -310,19 +326,39 @@ export class AgentService {
             isAvailable: true,
             allergens: { hasSome: allergies },
             ...(category ? { category } : {}),
-            ...(search
-              ? { name: { contains: search, mode: 'insensitive' as const } }
-              : {}),
+            ...(cluster ? { cluster } : {}),
+            ...searchWhere,
           },
-          orderBy: { name: 'asc' },
+          orderBy: [{ rating: 'desc' }, { name: 'asc' }],
         })
       : [];
 
     return {
-      safe: safeItems.map((item) => ({
-        ...item,
-        calories: item.calories ?? null,
-      })),
+      safe: safeItems
+        .map((item) => {
+          const matchedSensory = sensory.filter((value) =>
+            item.sensoryProfile.includes(value),
+          );
+          const matchScore = Math.min(
+            100,
+            70 + matchedSensory.length * 10 + Math.round(item.rating * 2),
+          );
+          const reasonParts = ['Aman dari alergi yang tersimpan'];
+          if (matchedSensory.length) {
+            reasonParts.push(`cocok untuk rasa ${matchedSensory.join(', ')}`);
+          }
+          if (normalizedDiet) reasonParts.push(`sesuai diet ${normalizedDiet}`);
+
+          return {
+            ...item,
+            calories: item.calories ?? null,
+            safetyStatus: 'safe' as const,
+            matchScore,
+            matchedSensory,
+            recommendationReason: reasonParts.join(' dan '),
+          };
+        })
+        .sort((a, b) => b.matchScore - a.matchScore),
       unsafe: unsafeItems.map((item) => {
         const triggeredAllergens = allergies.filter((a) =>
           item.allergens.includes(a),
@@ -330,7 +366,22 @@ export class AgentService {
         return {
           ...item,
           calories: item.calories ?? null,
-          reason: `Mengandung ${triggeredAllergens.join(', ')}`,
+          safetyStatus: 'unsafe' as const,
+          matchScore: 0,
+          matchedSensory: sensory.filter((value) =>
+            item.sensoryProfile.includes(value),
+          ),
+          reason: [
+            `Terdeteksi ${triggeredAllergens.join(', ')}`,
+            item.hiddenIngredients.length
+              ? `bahan tersembunyi: ${item.hiddenIngredients.join(', ')}`
+              : '',
+            item.crossContaminationRisk
+              ? `risiko kontaminasi silang: ${item.crossContaminationRisk}`
+              : '',
+          ]
+            .filter(Boolean)
+            .join('. '),
         };
       }),
     };

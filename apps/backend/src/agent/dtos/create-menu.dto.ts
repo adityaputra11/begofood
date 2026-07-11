@@ -18,4 +18,12 @@ export class CreateMenuDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @IsOptional()
+  @IsString()
+  cluster?: string;
+
+  @IsOptional()
+  @IsString()
+  restaurant?: string;
 }
