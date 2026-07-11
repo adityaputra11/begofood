@@ -22,8 +22,9 @@ Setiap menu menyimpan:
 - karakter sensoris (`sensoryProfile`);
 - risiko proses bersama (`crossContaminationRisk`);
 - tag diet, estimasi kalori, klaster, kategori, status harga, dan sumber resmi.
+- rating dan jumlah ulasan tidak digunakan dalam sistem final.
 
-Empat alergi primer mengikuti batasan skripsi: `seafood`, `kacang`, `telur`, dan `susu`. Dataset juga mempertahankan `gluten`, `kedelai`, dan `wijen` untuk menguji perluasan sistem.
+Empat alergi utama sesuai batasan skripsi: `kacang`, `susu`, `telur`, dan `seafood`. Dataset juga menyimpan data alergen lain (`gluten`, `kedelai`, `wijen`) pada menu existing untuk kompatibilitas, namun sistem hanya menggunakan 4 alergen untuk filtering.
 
 ## Aturan penggunaan
 
