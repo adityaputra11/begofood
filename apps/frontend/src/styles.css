@@ -127,6 +127,84 @@ button {
   background: #253b36;
   font-weight: 700;
 }
+.persona-avatar {
+  font-size: 20px;
+  line-height: 38px;
+}
+.persona-picker {
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 0 24px 60px;
+  text-align: center;
+}
+.persona-picker-header {
+  margin-bottom: 48px;
+}
+.persona-picker-header h1 {
+  font: 800 clamp(38px, 5vw, 56px)/1 'Manrope';
+  letter-spacing: -2px;
+  margin: 12px 0 14px;
+}
+.persona-picker-header p {
+  color: var(--muted);
+  font-size: 16px;
+  max-width: 520px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 20px;
+}
+.persona-card {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 20px;
+  background: #fff;
+  border-radius: 20px;
+  border: 2px solid transparent;
+  transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(58, 48, 36, 0.06);
+}
+.persona-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--coral);
+  box-shadow: 0 12px 40px rgba(242, 100, 76, 0.12);
+}
+.persona-card:focus-visible {
+  border-color: var(--coral);
+  outline: 3px solid rgba(242, 100, 76, 0.3);
+}
+.persona-emoji {
+  font-size: 48px;
+  line-height: 1;
+}
+.persona-card strong {
+  font: 700 20px 'Manrope';
+  color: var(--ink);
+}
+.persona-card small {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.persona-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.persona-pills .warning-pill,
+.persona-pills .safe-pill {
+  font-size: 9px;
+  padding: 4px 7px;
+}
 .offline-banner {
   background: #fff0d8;
   color: #79511c;
@@ -253,6 +331,16 @@ button {
   background: #e0f1e7;
   color: var(--green);
 }
+.hint-pill {
+  background: #e8e6de;
+  color: var(--muted);
+  border: 1px dashed #c5c2b5;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-weight: 600;
+  font-size: 11px;
+}
+
 .text-button {
   border: 0;
   background: transparent;
@@ -352,6 +440,28 @@ h2 {
   background: #273c37;
   border-color: #273c37;
   transform: translateY(-2px);
+}
+.dislike-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+.dislike-chips button {
+  border: 1px solid var(--line);
+  background: #fff;
+  color: #555650;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: 0.2s;
+}
+.dislike-chips button:hover,
+.dislike-chips .selected {
+  color: #fff;
+  background: var(--coral-dark);
+  border-color: var(--coral-dark);
 }
 .recommendation-section,
 .catalog-section {
@@ -563,6 +673,27 @@ h2 {
   padding: 11px 34px 11px 14px;
   color: var(--ink);
 }
+.catalog-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 8px 14px;
+  margin-bottom: 16px;
+}
+.catalog-search span {
+  font-size: 18px;
+  color: var(--muted);
+}
+.catalog-search input {
+  border: 0;
+  outline: 0;
+  flex: 1;
+  font-size: 14px;
+  background: transparent;
+}
 .category-tabs {
   display: flex;
   gap: 9px;
@@ -585,7 +716,7 @@ h2 {
 .menu-grid,
 .loading-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 18px;
 }
 .skeleton {
@@ -863,6 +994,21 @@ legend {
 .safety-explanation.danger {
   background: #fff0ed;
   color: #943b31;
+}
+.ai-description {
+  display: flex;
+  gap: 12px;
+  padding: 15px;
+  margin: 20px 0;
+  background: #f0edf7;
+  color: #4a3d6b;
+  border-radius: 13px;
+}
+.ai-description > span { font-size: 21px; }
+.ai-description p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
 }
 .detail-columns {
   display: grid;
@@ -1249,7 +1395,7 @@ legend {
     right: 0;
     height: 72px;
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     background: rgba(255, 255, 255, 0.97);
     border-top: 1px solid var(--line);
     backdrop-filter: blur(15px);
@@ -1260,11 +1406,15 @@ legend {
     background: transparent;
     color: #8b8b85;
     text-decoration: none;
-    display: grid;
-    place-items: center;
-    align-content: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     gap: 2px;
     font-size: 9px;
+    padding: 8px 0;
+    cursor: pointer;
+    width: 100%;
   }
   .mobile-nav span {
     font-size: 22px;

@@ -1,40 +1,26 @@
-import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { chat, getMenus, getPreferences, savePreferences } from './api';
-import type { Menu, Preferences } from './types';
+import { useEffect, useState } from 'react';
+import { getMenus, getPersonas, getPreferences, savePreferences } from './api';
+import type { Menu, Persona, Preferences } from './types';
 
 const categories = [
-  { value: '', label: 'Semua', icon: '✦' },
-  { value: 'main_course', label: 'Hidangan', icon: '🍲' },
-  { value: 'soup', label: 'Berkuah', icon: '🥣' },
-  { value: 'salad', label: 'Segar', icon: '🥗' },
-  { value: 'appetizer', label: 'Camilan', icon: '🥟' },
-  { value: 'dessert', label: 'Manis', icon: '🍮' },
+  { value: '', label: 'Semua', icon: '🍽' },
+  { value: 'main_course', label: 'Makanan utama', icon: '🥘' },
+  { value: 'appetizer', label: 'Pembuka', icon: '🥗' },
+  { value: 'dessert', label: 'Pencuci mulut', icon: '🍰' },
+  { value: 'beverage', label: 'Minuman', icon: '🥤' },
+  { value: 'snack', label: 'Camilan', icon: '🍿' },
 ];
 
 const clusters = [
-  { value: '', label: 'Semua dapur' },
-  { value: 'western_indonesian', label: 'Western–Indonesia' },
-  { value: 'chinese_food', label: 'Chinese Food' },
+  { value: '', label: 'Semua klaster' },
+  { value: 'western_indonesian', label: 'Western & Indonesia' },
+  { value: 'chinese_food', label: 'Chinese food' },
   { value: 'seafood', label: 'Seafood' },
 ];
 
-const sensoryOptions = [
-  'renyah',
-  'hangat',
-  'gurih',
-  'pedas',
-  'smoky',
-  'creamy',
-  'segar',
-];
-const allergyOptions = ['seafood', 'kacang', 'telur', 'susu'];
-const dietOptions = [
-  { value: 'none', label: 'Tidak ada' },
-  { value: 'vegetarian', label: 'Vegetarian' },
-  { value: 'low_carb', label: 'Low carb' },
-  { value: 'high_protein', label: 'High protein' },
-  { value: 'low_fat', label: 'Low fat' },
-];
+const sensoryOptions = ['renyah', 'hangat', 'pedas', 'segar', 'gurih'];
+
+const allergyOptions = ['kacang', 'susu', 'telur', 'seafood'];
 
 const fallbackMenus: Menu[] = [
   {
@@ -56,15 +42,8 @@ const fallbackMenus: Menu[] = [
     hiddenIngredients: [],
     sensoryProfile: ['empuk', 'gurih', 'pedas'],
     calories: 468,
-    rating: 0,
-    reviewCount: 0,
     priceStatus: 'simulated',
     prepMinutes: 35,
-    safetyStatus: 'safe',
-    matchScore: 92,
-    matchedSensory: ['gurih'],
-    recommendationReason:
-      'Aman dari alergi yang tersimpan dan cocok untuk rasa gurih',
   },
   {
     id: 'demo-2',
@@ -84,15 +63,8 @@ const fallbackMenus: Menu[] = [
     hiddenIngredients: ['susu pada mozzarella', 'kacang pada pesto'],
     sensoryProfile: ['creamy', 'gurih', 'aromatik'],
     calories: 360,
-    rating: 0,
-    reviewCount: 0,
     priceStatus: 'simulated',
     prepMinutes: 17,
-    safetyStatus: 'unsafe',
-    matchScore: 0,
-    matchedSensory: [],
-    reason:
-      'Terdeteksi susu, gluten, atau kacang dari mozzarella, adonan, dan pesto',
   },
   {
     id: 'demo-3',
@@ -111,15 +83,8 @@ const fallbackMenus: Menu[] = [
     hiddenIngredients: ['terasi fermentasi'],
     sensoryProfile: ['juicy', 'smoky', 'pedas'],
     calories: 380,
-    rating: 0,
-    reviewCount: 0,
     priceStatus: 'official_snapshot_2026_07_11',
     prepMinutes: 28,
-    safetyStatus: 'safe',
-    matchScore: 90,
-    matchedSensory: ['pedas'],
-    recommendationReason:
-      'Aman dari alergi yang tersimpan dan cocok untuk rasa pedas',
   },
   {
     id: 'demo-4',
@@ -138,14 +103,8 @@ const fallbackMenus: Menu[] = [
     hiddenIngredients: ['telur dan gluten pada mi'],
     sensoryProfile: ['kenyal', 'gurih'],
     calories: 520,
-    rating: 0,
-    reviewCount: 0,
     priceStatus: 'simulated',
     prepMinutes: 15,
-    safetyStatus: 'safe',
-    matchScore: 88,
-    matchedSensory: ['gurih'],
-    recommendationReason: 'Sesuai selera gurihmu',
   },
   {
     id: 'demo-5',
@@ -166,14 +125,8 @@ const fallbackMenus: Menu[] = [
     crossContaminationRisk:
       'Dimasak di wok yang juga menangani kepiting dan cumi.',
     calories: 430,
-    rating: 0,
-    reviewCount: 0,
     priceStatus: 'simulated',
     prepMinutes: 25,
-    safetyStatus: 'unsafe',
-    matchScore: 0,
-    matchedSensory: [],
-    reason: 'Terdeteksi seafood dan telur',
   },
   {
     id: 'demo-6',
@@ -193,15 +146,8 @@ const fallbackMenus: Menu[] = [
     hiddenIngredients: ['gluten pada pasta'],
     sensoryProfile: ['al_dente', 'aromatik', 'pedas'],
     calories: 480,
-    rating: 0,
-    reviewCount: 0,
     priceStatus: 'simulated',
     prepMinutes: 20,
-    safetyStatus: 'safe',
-    matchScore: 86,
-    matchedSensory: ['pedas'],
-    recommendationReason:
-      'Aman dari alergi yang tersimpan dan cocok untuk rasa pedas',
   },
 ];
 
@@ -212,14 +158,6 @@ const defaultPreferences: Preferences = {
   hasPreferences: false,
 };
 
-function getUserId() {
-  const stored = localStorage.getItem('begofood-user-id');
-  if (stored) return stored;
-  const id = crypto.randomUUID();
-  localStorage.setItem('begofood-user-id', id);
-  return id;
-}
-
 function money(value: number) {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -229,17 +167,21 @@ function money(value: number) {
 }
 
 function clusterLabel(value: string) {
-  return clusters.find((item) => item.value === value)?.label ?? value;
+  return clusters.find((item) => item.value === value)?.label || value;
 }
 
 function App() {
-  const [userId] = useState(getUserId);
-  const [menus, setMenus] = useState<Menu[]>(
-    fallbackMenus.filter((menu) => menu.safetyStatus === 'safe'),
-  );
-  const [unsafeMenus, setUnsafeMenus] = useState<Menu[]>(
-    fallbackMenus.filter((menu) => menu.safetyStatus === 'unsafe'),
-  );
+  // Pre-populate with fallback so UI is never blank
+  const fallbackPersonas: Persona[] = [
+    { id: 'persona-andi', name: 'Andi', emoji: '👨‍🍳', bio: 'Penyuka pedas sejati — bebas alergi, pantang hambar', preferences: { allergies: [], diet: null, dislikedTags: [] } },
+    { id: 'persona-budi', name: 'Budi', emoji: '🥜', bio: 'Alergi kacang & seafood — harus ekstra hati-hati', preferences: { allergies: ['kacang', 'seafood'], diet: null, dislikedTags: [] } },
+    { id: 'persona-dedi', name: 'Dedi', emoji: '💪', bio: 'Alergi telur — hindari telur & olahannya', preferences: { allergies: ['telur'], diet: null, dislikedTags: [] } },
+  ];
+  const [personas, setPersonas] = useState<Persona[]>(fallbackPersonas);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
+  const [userId, setUserId] = useState<string>('');
+  const [menus, setMenus] = useState<Menu[]>(fallbackMenus);
+  const [unsafeMenus, setUnsafeMenus] = useState<Menu[]>([]);
   const [preferences, setPreferences] =
     useState<Preferences>(defaultPreferences);
   const [search, setSearch] = useState('');
@@ -252,7 +194,71 @@ function App() {
   const [showUnsafe, setShowUnsafe] = useState(false);
   const [preferenceOpen, setPreferenceOpen] = useState(false);
   const [selectedMenu, setSelectedMenu] = useState<Menu | null>(null);
-  const [chatOpen, setChatOpen] = useState(false);
+
+  const hasFiltering = preferences.hasPreferences;
+  const personaSelected = !!selectedPersona;
+
+  // Load personas on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('begofood-persona');
+
+    const initFromPersona = (persona: Persona) => {
+      // Set local preferences from persona data first (instant UI)
+      setSelectedPersona(persona);
+      setUserId(persona.id);
+      setPreferences({ ...persona.preferences, hasPreferences: true });
+
+      // Then fetch real preferences from backend (overwrites jika ada customization)
+      getPreferences(persona.id)
+        .then((data) => {
+          setPreferences(data);
+          setOffline(false);
+        })
+        .catch(() => setOffline(true));
+    };
+
+    getPersonas()
+      .then((data) => {
+        setPersonas(data);
+        if (stored) {
+          const match = data.find((p) => p.id === stored);
+          if (match) initFromPersona(match);
+        }
+      })
+      .catch(() => {
+        // API offline — fallbackPersonas already set as initial state
+        if (stored) {
+          const match = fallbackPersonas.find((p) => p.id === stored);
+          if (match) initFromPersona(match);
+        }
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const selectPersona = async (persona: Persona) => {
+    localStorage.setItem('begofood-persona', persona.id);
+    setSelectedPersona(persona);
+    setUserId(persona.id);
+
+    // Set preferences from persona data instantly (UI feedback)
+    setPreferences({ ...persona.preferences, hasPreferences: true });
+
+    // Save ke backend, lalu fetch ulang biar konsisten
+    try {
+      const result = await savePreferences(persona.id, {
+        allergies: persona.preferences.allergies,
+        diet: null,
+        dislikedTags: persona.preferences.dislikedTags,
+      });
+      setPreferences(result.preferences);
+      setOffline(false);
+    } catch {
+      // Backend offline — local preferences tetap kepake
+      setOffline(true);
+    }
+  };
+
+
 
   useEffect(() => {
     const timeout = window.setTimeout(() => setDebouncedSearch(search), 280);
@@ -260,19 +266,7 @@ function App() {
   }, [search]);
 
   useEffect(() => {
-    getPreferences(userId)
-      .then((data) => {
-        setPreferences(data);
-        if (
-          !data.hasPreferences &&
-          !localStorage.getItem('begofood-onboarding-seen')
-        )
-          setPreferenceOpen(true);
-      })
-      .catch(() => setOffline(true));
-  }, [userId]);
-
-  useEffect(() => {
+    if (!personaSelected) return;
     let active = true;
     setLoading(true);
     getMenus({ userId, search: debouncedSearch, category, cluster, sensory })
@@ -293,9 +287,30 @@ function App() {
                 .toLowerCase()
                 .includes(debouncedSearch.toLowerCase())),
         );
-        setMenus(filtered.filter((menu) => menu.safetyStatus === 'safe'));
+        const safe = filtered.filter(
+          (menu) =>
+            !preferences.allergies.some((a) => menu.allergens.includes(a)),
+        );
+        const unsafe = filtered.filter((menu) =>
+          preferences.allergies.some((a) => menu.allergens.includes(a)),
+        );
+        setMenus(
+          safe.map((menu) => ({
+            ...menu,
+            safetyStatus: 'safe' as const,
+            matchScore: 80,
+            matchedSensory: [],
+            recommendationReason: 'Aman dari alergi yang tersimpan',
+          })),
+        );
         setUnsafeMenus(
-          filtered.filter((menu) => menu.safetyStatus === 'unsafe'),
+          unsafe.map((menu) => ({
+            ...menu,
+            safetyStatus: 'unsafe' as const,
+            matchScore: 0,
+            matchedSensory: [],
+            reason: `Terdeteksi ${preferences.allergies.filter((a) => menu.allergens.includes(a)).join(', ')}`,
+          })),
         );
         setOffline(true);
       })
@@ -303,9 +318,8 @@ function App() {
     return () => {
       active = false;
     };
-  }, [userId, debouncedSearch, category, cluster, sensory]);
-
-  const topMenus = useMemo(() => menus.slice(0, 4), [menus]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId, debouncedSearch, category, cluster, sensory, personaSelected, preferences.allergies]);
 
   const toggleSensory = (value: string) => {
     setSensory((current) =>
@@ -316,11 +330,10 @@ function App() {
   };
 
   const updatePreferences = async (next: Preferences) => {
-    setPreferences(next);
     try {
       const result = await savePreferences(userId, {
         allergies: next.allergies,
-        diet: next.diet,
+        diet: null,
         dislikedTags: next.dislikedTags,
       });
       setPreferences(result.preferences);
@@ -328,9 +341,51 @@ function App() {
     } catch {
       setOffline(true);
     }
-    localStorage.setItem('begofood-onboarding-seen', 'true');
     setPreferenceOpen(false);
   };
+
+  // Show persona selector if none selected
+  if (!personaSelected) {
+    return (
+      <div className="app-shell">
+        <header className="topbar">
+          <a className="brand" href="#top" aria-label="Begofood home">
+            <span className="brand-mark">b</span>
+            <span>begofood</span>
+          </a>
+        </header>
+        <main className="persona-picker">
+          <div className="persona-picker-header">
+            <span className="eyebrow">✦ SELAMAT DATANG</span>
+            <h1>Siapa yang pakai?</h1>
+            <p>Pilih profil yang paling cocok dengan kebutuhanmu. Preferensi bisa diubah kapan saja.</p>
+          </div>
+          <div className="persona-grid">
+            {personas.map((persona) => (
+              <button
+                key={persona.id}
+                className="persona-card"
+                type="button"
+                onClick={() => selectPersona(persona)}
+              >
+                <span className="persona-emoji">{persona.emoji}</span>
+                <strong>{persona.name}</strong>
+                <small>{persona.bio}</small>
+                <div className="persona-pills">
+                  {persona.preferences.allergies.map((a) => (
+                    <span className="warning-pill" key={a}>Tanpa {a}</span>
+                  ))}
+                  {persona.preferences.dislikedTags.map((t) => (
+                    <span className="safe-pill" key={t}>Suka {t}</span>
+                  ))}
+                </div>
+              </button>
+            ))}
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell">
@@ -357,12 +412,13 @@ function App() {
             </div>
           </div>
           <button
-            className="avatar"
+            className="avatar persona-avatar"
             type="button"
             onClick={() => setPreferenceOpen(true)}
             aria-label="Buka profil"
+            title={selectedPersona?.name}
           >
-            AP
+            {selectedPersona?.emoji}
           </button>
         </div>
       </header>
@@ -384,28 +440,16 @@ function App() {
               <em>tanpa rasa cemas.</em>
             </h1>
             <p>
-              Ceritakan yang kamu mau. Bego AI mencocokkan rasa, diet, dan
+              Ceritakan yang kamu mau. Foodi AI mencocokkan rasa dan
               alergimu sampai ke bahan yang sering tersembunyi.
             </p>
-            <div className="hero-search">
-              <span>⌕</span>
-              <input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Lagi ingin yang renyah dan gurih..."
-                aria-label="Cari menu berdasarkan rasa"
-              />
-              <button type="button" onClick={() => setChatOpen(true)}>
-                Tanya Bego AI <span>↗</span>
-              </button>
-            </div>
             <div className="preference-summary">
               <button
                 type="button"
                 onClick={() => setPreferenceOpen(true)}
                 className="profile-pill"
               >
-                ☘ Profilmu
+                {selectedPersona?.emoji} {selectedPersona?.name}
               </button>
               {preferences.allergies.length ? (
                 preferences.allergies.map((item) => (
@@ -414,11 +458,13 @@ function App() {
                   </span>
                 ))
               ) : (
-                <span>Belum ada alergi tersimpan</span>
+                <span>Tidak ada alergi</span>
               )}
-              {preferences.diet && preferences.diet !== 'none' && (
+
+
+              {preferences.dislikedTags.length > 0 && (
                 <span className="safe-pill">
-                  {preferences.diet.replace('_', ' ')}
+                  Pengen {preferences.dislikedTags.join(', ')}
                 </span>
               )}
               <button
@@ -427,6 +473,20 @@ function App() {
                 onClick={() => setPreferenceOpen(true)}
               >
                 Ubah
+              </button>
+              <button
+                className="text-button"
+                type="button"
+                onClick={() => {
+                  localStorage.removeItem('begofood-persona');
+                  setSelectedPersona(null);
+                  setUserId('');
+                  setPreferences(defaultPreferences);
+                  setMenus(fallbackMenus);
+                  setUnsafeMenus([]);
+                }}
+              >
+                Ganti profil
               </button>
             </div>
           </div>
@@ -440,54 +500,6 @@ function App() {
               <b>94%</b>
               <span>Cocok dengan seleramu</span>
             </div>
-          </div>
-        </section>
-
-        <section className="taste-section" aria-labelledby="taste-title">
-          <div>
-            <span className="section-kicker">MOOD MAKAN</span>
-            <h2 id="taste-title">Hari ini lagi ingin yang...</h2>
-          </div>
-          <div className="taste-chips">
-            {sensoryOptions.map((item) => (
-              <button
-                className={sensory.includes(item) ? 'selected' : ''}
-                key={item}
-                type="button"
-                onClick={() => toggleSensory(item)}
-              >
-                {item === 'renyah'
-                  ? '🥨'
-                  : item === 'hangat'
-                    ? '♨'
-                    : item === 'pedas'
-                      ? '🌶'
-                      : item === 'segar'
-                        ? '🍋'
-                        : '✦'}{' '}
-                {item}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section id="recommendations" className="recommendation-section">
-          <div className="section-heading">
-            <div>
-              <span className="section-kicker">DIPILIH KHUSUS UNTUKMU</span>
-              <h2>Rekomendasi Bego AI</h2>
-            </div>
-            <p>{menus.length} menu lolos pemeriksaan profilmu</p>
-          </div>
-          <div className="featured-grid">
-            {topMenus.map((menu, index) => (
-              <MenuCard
-                menu={menu}
-                featured={index === 0}
-                key={menu.id}
-                onClick={() => setSelectedMenu(menu)}
-              />
-            ))}
           </div>
         </section>
 
@@ -508,6 +520,15 @@ function App() {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="catalog-search">
+            <span>⌕</span>
+            <input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Cari menu..."
+              aria-label="Cari menu"
+            />
           </div>
           <div className="category-tabs">
             {categories.map((item) => (
@@ -534,6 +555,7 @@ function App() {
                 <MenuCard
                   menu={menu}
                   key={menu.id}
+                  hasFiltering={true}
                   onClick={() => setSelectedMenu(menu)}
                 />
               ))}
@@ -567,6 +589,7 @@ function App() {
                     <MenuCard
                       menu={menu}
                       key={menu.id}
+                      hasFiltering={true}
                       onClick={() => setSelectedMenu(menu)}
                     />
                   ))}
@@ -586,17 +609,7 @@ function App() {
         <span>Data katalog untuk simulasi penelitian • 2026</span>
       </footer>
 
-      <button
-        className="ai-fab"
-        type="button"
-        onClick={() => setChatOpen(true)}
-      >
-        <span>✦</span>
-        <div>
-          <b>Tanya Bego AI</b>
-          <small>Online • Siap bantu</small>
-        </div>
-      </button>
+
       <nav className="mobile-nav">
         <a className="active" href="#top">
           <span>⌂</span>Home
@@ -604,9 +617,7 @@ function App() {
         <a href="#catalog">
           <span>⌕</span>Jelajah
         </a>
-        <button type="button" onClick={() => setChatOpen(true)}>
-          <span className="mobile-ai">✦</span>AI
-        </button>
+
         <button type="button" onClick={() => setPreferenceOpen(true)}>
           <span>♙</span>Profil
         </button>
@@ -620,11 +631,9 @@ function App() {
         />
       )}
       {selectedMenu && (
-        <MenuDetail menu={selectedMenu} onClose={() => setSelectedMenu(null)} />
+        <MenuDetail menu={selectedMenu} onClose={() => setSelectedMenu(null)} hasFiltering={true} />
       )}
-      {chatOpen && (
-        <ChatPanel userId={userId} onClose={() => setChatOpen(false)} />
-      )}
+
     </div>
   );
 }
@@ -632,10 +641,12 @@ function App() {
 function MenuCard({
   menu,
   featured = false,
+  hasFiltering,
   onClick,
 }: {
   menu: Menu;
   featured?: boolean;
+  hasFiltering: boolean;
   onClick: () => void;
 }) {
   const unsafe = menu.safetyStatus === 'unsafe';
@@ -645,11 +656,13 @@ function MenuCard({
       onClick={onClick}
     >
       <div className="menu-image-wrap">
-        <img src={menu.imageUrl} alt={menu.name} loading="lazy" />
-        <span className={unsafe ? 'unsafe-badge' : 'safe-badge'}>
-          {unsafe ? '⚠ Tidak aman' : '✓ Aman untukmu'}
-        </span>
-        {!unsafe && (
+        <img src={menu.imageUrl || `https://placehold.co/400x300/f5f3ee/252420?text=${encodeURIComponent(menu.name)}`} alt={menu.name} loading="lazy" />
+        {hasFiltering && (
+          <span className={unsafe ? 'unsafe-badge' : 'safe-badge'}>
+            {unsafe ? '⚠ Tidak aman' : '✓ Aman untukmu'}
+          </span>
+        )}
+        {hasFiltering && !unsafe && menu.matchScore && (
           <span className="match-badge">{menu.matchScore}% match</span>
         )}
       </div>
@@ -660,7 +673,7 @@ function MenuCard({
         </div>
         <h3>{menu.name}</h3>
         <p>{unsafe ? menu.reason : menu.description}</p>
-        {!unsafe && menu.recommendationReason && (
+        {!unsafe && menu.recommendationReason && hasFiltering && (
           <div className="reason-box">
             <span>✦</span>
             {menu.recommendationReason}
@@ -758,21 +771,24 @@ function PreferenceModal({
           </div>
         </fieldset>
         <fieldset>
-          <legend>Pola makan</legend>
-          <div className="diet-options">
-            {dietOptions.map((item) => (
-              <label key={item.value}>
-                <input
-                  type="radio"
-                  name="diet"
-                  value={item.value}
-                  checked={(draft.diet || 'none') === item.value}
-                  onChange={() =>
-                    setDraft((current) => ({ ...current, diet: item.value }))
-                  }
-                />
-                <span>{item.label}</span>
-              </label>
+          <legend>Lagi pengen rasa apa hari ini?</legend>
+          <div className="taste-chips dislike-chips">
+            {['pedas', 'manis', 'pahit', 'gurih'].map((item) => (
+              <button
+                type="button"
+                className={draft.dislikedTags.includes(item) ? 'selected' : ''}
+                key={item}
+                onClick={() =>
+                  setDraft((current) => ({
+                    ...current,
+                    dislikedTags: current.dislikedTags.includes(item)
+                      ? current.dislikedTags.filter((value) => value !== item)
+                      : [...current.dislikedTags, item],
+                  }))
+                }
+              >
+                {item === 'pedas' ? '🌶' : item === 'manis' ? '🍬' : item === 'pahit' ? '☕' : '🧂'} {item}
+              </button>
             ))}
           </div>
         </fieldset>
@@ -796,7 +812,7 @@ function PreferenceModal({
   );
 }
 
-function MenuDetail({ menu, onClose }: { menu: Menu; onClose: () => void }) {
+function MenuDetail({ menu, onClose, hasFiltering }: { menu: Menu; onClose: () => void; hasFiltering: boolean }) {
   const unsafe = menu.safetyStatus === 'unsafe';
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
@@ -813,33 +829,46 @@ function MenuDetail({ menu, onClose }: { menu: Menu; onClose: () => void }) {
         >
           ×
         </button>
-        <img className="detail-image" src={menu.imageUrl} alt={menu.name} />
+        <img className="detail-image" src={menu.imageUrl || `https://placehold.co/600x400/f5f3ee/252420?text=${encodeURIComponent(menu.name)}`} alt={menu.name} />
         <div className="detail-body">
-          <span
-            className={unsafe ? 'unsafe-badge inline' : 'safe-badge inline'}
-          >
-            {unsafe ? '⚠ Pilihan dikunci' : '✓ Lolos pemeriksaan alergi'}
-          </span>
+          {hasFiltering && (
+            <span
+              className={unsafe ? 'unsafe-badge inline' : 'safe-badge inline'}
+            >
+              {unsafe ? '⚠ Pilihan dikunci' : '✓ Lolos pemeriksaan alergi'}
+            </span>
+          )}
           <small>
             {clusterLabel(menu.cluster)} • {menu.restaurant}
           </small>
           <h2>{menu.name}</h2>
           <p>{menu.description}</p>
-          <div
-            className={
-              unsafe ? 'safety-explanation danger' : 'safety-explanation'
-            }
-          >
-            <span>{unsafe ? '!' : '✦'}</span>
-            <div>
-              <b>
-                {unsafe
-                  ? 'Mengapa menu ini tidak aman?'
-                  : `Mengapa cocok ${menu.matchScore}%?`}
-              </b>
-              <p>{unsafe ? menu.reason : menu.recommendationReason}</p>
+          {menu.aiDescription && (
+            <div className="ai-description">
+              <span>✦</span>
+              <div>
+                <b>Analisis Foodi AI</b>
+                <p>{menu.aiDescription}</p>
+              </div>
             </div>
-          </div>
+          )}
+          {hasFiltering && (
+            <div
+              className={
+                unsafe ? 'safety-explanation danger' : 'safety-explanation'
+              }
+            >
+              <span>{unsafe ? '!' : '✦'}</span>
+              <div>
+                <b>
+                  {unsafe
+                    ? 'Mengapa menu ini tidak aman?'
+                    : `Mengapa cocok ${menu.matchScore ?? 0}%?`}
+                </b>
+                <p>{unsafe ? menu.reason : menu.recommendationReason}</p>
+              </div>
+            </div>
+          )}
           <div className="detail-columns">
             <div>
               <h4>Komposisi utama</h4>
@@ -886,111 +915,6 @@ function MenuDetail({ menu, onClose }: { menu: Menu; onClose: () => void }) {
         </div>
       </section>
     </div>
-  );
-}
-
-type ChatMessage = { role: 'assistant' | 'user'; text: string };
-function ChatPanel({
-  userId,
-  onClose,
-}: {
-  userId: string;
-  onClose: () => void;
-}) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'assistant',
-      text: 'Hai, gue Bego AI ✦ Lagi ingin rasa atau tekstur seperti apa? Gue juga akan cek profil alergimu sebelum merekomendasikan.',
-    },
-  ]);
-  const [input, setInput] = useState('');
-  const [sessionId, setSessionId] = useState<string>();
-  const [sending, setSending] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  useEffect(
-    () => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }),
-    [messages],
-  );
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
-    const message = input.trim();
-    if (!message || sending) return;
-    setInput('');
-    setMessages((items) => [...items, { role: 'user', text: message }]);
-    setSending(true);
-    try {
-      const result = await chat(message, userId, sessionId);
-      setSessionId(result.sessionId);
-      setMessages((items) => [
-        ...items,
-        { role: 'assistant', text: result.response },
-      ]);
-    } catch {
-      setMessages((items) => [
-        ...items,
-        {
-          role: 'assistant',
-          text: 'Backend AI belum tersambung. Kamu tetap bisa memakai filter katalog dan profil alergi di halaman utama.',
-        },
-      ]);
-    } finally {
-      setSending(false);
-    }
-  };
-  return (
-    <aside className="chat-panel" aria-label="Percakapan dengan Bego AI">
-      <header>
-        <div>
-          <span>✦</span>
-          <div>
-            <b>Bego AI</b>
-            <small>Asisten rasa & keamanan menu</small>
-          </div>
-        </div>
-        <button type="button" onClick={onClose}>
-          ×
-        </button>
-      </header>
-      <div className="chat-body">
-        <div className="chat-context">
-          Profil alergi selalu diperiksa sebelum rekomendasi.
-        </div>
-        {messages.map((message, index) => (
-          <div
-            className={`message ${message.role}`}
-            key={`${message.role}-${index}`}
-          >
-            {message.text}
-          </div>
-        ))}
-        {sending && <div className="message assistant typing">● ● ●</div>}
-        <div ref={bottomRef} />
-      </div>
-      <div className="quick-prompts">
-        <button
-          type="button"
-          onClick={() => setInput('Aku ingin makanan hangat dan gurih')}
-        >
-          Hangat & gurih
-        </button>
-        <button
-          type="button"
-          onClick={() => setInput('Rekomendasikan menu high protein')}
-        >
-          High protein
-        </button>
-      </div>
-      <form onSubmit={submit}>
-        <input
-          value={input}
-          onChange={(event) => setInput(event.target.value)}
-          placeholder="Ceritakan makanan yang kamu mau..."
-        />
-        <button type="submit" aria-label="Kirim pesan">
-          ↑
-        </button>
-      </form>
-    </aside>
   );
 }
 

@@ -7,6 +7,7 @@ import {
   MENU_ANALYSIS_QUEUE,
 } from './queues/menu-analysis.processor.js';
 import { KnowledgeAgentService } from './services/knowledge-agent.service.js';
+import { AnalysisEventService } from './services/analysis-event.service.js';
 
 function redisConfig() {
   const url = process.env.REDIS_URL;
@@ -33,11 +34,28 @@ function redisConfig() {
 
 @Module({
   imports: [
-    BullModule.forRoot({ redis: redisConfig() }),
+    BullModule.forRoot({
+      redis: redisConfig(),
+      defaultJobOptions: {
+        attempts: 1,
+        backoff: { type: 'exponential', delay: 5000 },
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
+      limiter: {
+        max: 1,
+        duration: 8000,
+      },
+    }),
     BullModule.registerQueue({ name: MENU_ANALYSIS_QUEUE }),
   ],
   controllers: [AgentController],
-  providers: [AgentService, KnowledgeAgentService, MenuAnalysisProcessor],
-  exports: [AgentService, KnowledgeAgentService],
+  providers: [
+    AgentService,
+    KnowledgeAgentService,
+    MenuAnalysisProcessor,
+    AnalysisEventService,
+  ],
+  exports: [AgentService, KnowledgeAgentService, AnalysisEventService],
 })
 export class AgentModule {}

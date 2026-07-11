@@ -4,7 +4,7 @@
   "private": true,
   "packageManager": "pnpm@10.24.0",
   "scripts": {
-    "dev": "pnpm --parallel --filter @begofood/backend --filter @begofood/frontend dev",
+    "dev": "pnpm --parallel --filter @begofood/backend --filter @begofood/frontend --filter @begofood/admin dev",
     "dev:backend": "pnpm --filter @begofood/backend dev",
     "dev:frontend": "pnpm --filter @begofood/frontend dev",
     "build": "pnpm -r --if-present build",

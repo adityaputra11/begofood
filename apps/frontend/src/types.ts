@@ -4,6 +4,7 @@ export type Menu = {
   id: string;
   name: string;
   description: string;
+  aiDescription?: string;
   price: number;
   imageUrl: string;
   category: string;
@@ -16,16 +17,26 @@ export type Menu = {
   sensoryProfile: string[];
   crossContaminationRisk?: string | null;
   calories: number | null;
-  rating: number;
-  reviewCount: number;
   prepMinutes: number;
   priceStatus?: string;
   sourceUrl?: string;
-  safetyStatus: SafetyStatus;
-  matchScore: number;
-  matchedSensory: string[];
+  safetyStatus?: SafetyStatus;
+  matchScore?: number;
+  matchedSensory?: string[];
   recommendationReason?: string;
   reason?: string;
+};
+
+export type Persona = {
+  id: string;
+  name: string;
+  emoji: string;
+  bio: string;
+  preferences: {
+    allergies: string[];
+    diet: string | null;
+    dislikedTags: string[];
+  };
 };
 
 export type Preferences = {

@@ -242,6 +242,18 @@ export class AgentService {
         },
       });
     } else {
+      // Auto-create user record if not exists (foreign key constraint)
+      await this.prisma.user.upsert({
+        where: { id: userId },
+        update: {},
+        create: {
+          id: userId,
+          name: userId.replace('persona-', ''),
+          email: `${userId}@begofood.app`,
+          password: '',
+          preference: '',
+        },
+      });
       await this.prisma.userPreference.create({
         data: {
           userId,
@@ -306,9 +318,7 @@ export class AgentService {
         ? { NOT: { allergens: { hasSome: allergies } } }
         : {}),
       ...(normalizedDiet ? { tags: { has: normalizedDiet } } : {}),
-      ...(dislikedTags.length > 0
-        ? { NOT: { tags: { hasSome: dislikedTags } } }
-        : {}),
+
       ...(category ? { category } : {}),
       ...(cluster ? { cluster } : {}),
       ...searchWhere,
@@ -316,7 +326,7 @@ export class AgentService {
 
     const safeItems = await this.prisma.menu.findMany({
       where: safeWhere,
-      orderBy: [{ rating: 'desc' }, { name: 'asc' }],
+      orderBy: { name: 'asc' },
     });
 
     // Menu TIDAK AMAN
@@ -329,7 +339,7 @@ export class AgentService {
             ...(cluster ? { cluster } : {}),
             ...searchWhere,
           },
-          orderBy: [{ rating: 'desc' }, { name: 'asc' }],
+          orderBy: { name: 'asc' },
         })
       : [];
 
@@ -339,9 +349,10 @@ export class AgentService {
           const matchedSensory = sensory.filter((value) =>
             item.sensoryProfile.includes(value),
           );
-          const matchScore = Math.min(
-            100,
-            70 + matchedSensory.length * 10 + Math.round(item.rating * 2),
+          const matchScore = this.calculateMatchScore(
+            item,
+            { allergies, diet: normalizedDiet, dislikedTags },
+            matchedSensory,
           );
           const reasonParts = ['Aman dari alergi yang tersimpan'];
           if (matchedSensory.length) {
@@ -385,6 +396,97 @@ export class AgentService {
         };
       }),
     };
+  }
+
+  /**
+   * Multi-criteria weighted match score (0–100).
+   *
+   * Safety adalah hard constraint + base value 40.
+   * Hard constraint: jika menu mengandung alergen user → langsung 0.
+   * Base score 40: jika aman, dapat 40 poin otomatis (40% dari total 100).
+   * 40 dipilih agar safety dominan tanpa numeric weight yang bisa ditimpa.
+   * Konsisten dengan "allergen precondition filter" di Hafez et al. (2021).
+   *
+   * Empat criteria sisanya diberi bobot dengan pertimbangan:
+   *
+   * 1. Diet (25%) — preferensi pola makan seperti vegetarian/vegan/low_carb
+   *    bersifat binary (cocok/tidak). Bobot 25% karena diet adalah preferensi
+   *   生活方式 yang signifikan tapi tidak mengancam kesehatan seperti alergi.
+   *    Referensi: Kalpakoglou et al. (2025) menggunakan diet sebagai
+   *    primary filter setelah allergen.
+   *
+   * 2. Sensory (20%) — craving sensoris bersifat situasional (user bisa milih
+   *    "lagi ingin pedas" hari ini). Bobot 20% karena ini preferensi jangka
+   *    pendek, bobotnya lebih rendah dari diet yang bersifat jangka panjang.
+   *    Setiap sensory match = 7 poin (20/3 ≈ 7, dibulatkan). 3 sensory match
+   *    = 21 → di-cap di 20. Angka 7 dipilih agar 1 match tetap ≥ 7 poin
+   *    (lebih bermakna dari 0) tapi 3 match sudah maksimal.
+   *    Referensi: Hamdollahi Oskouei & Hashemzadeh (2023) menggunakan
+   *    similarity score berbasis atribut item.
+   *
+   * 3. Preferred taste (+20%) — rasa yang diinginkan (misal "pengen pedas").
+   *    Bobot +20% (sama besar dengan sensory match) sebagai bonus.
+   *    Menu yang cocok dengan preferensi rasa user dapat boost 20 poin.
+   *    Bersifat positif (bukan penalty) sesuai framing "lagi pengen rasa apa".
+   *
+   * Total: 40 (safety base) + 25 (diet) + 20 (sensory) + 20 (preferred taste) = 105 max.
+   *
+   * Referensi utama:
+   * - Hafez et al. (2021) — multi-criteria recommendation + allergen precondition
+   * - Kalpakoglou et al. (2025) — AI-based nutrition scoring dengan diet & allergen
+   * - Hamdollahi Oskouei & Hashemzadeh (2023) — FoodRecNet similarity scoring
+   * - Brahimi (2025) — personalized menu recommendation + food allergy management
+   */
+  private calculateMatchScore(
+    item: {
+      allergens: string[];
+      tags: string[];
+      sensoryProfile: string[];
+    },
+    preferences: {
+      allergies: string[];
+      diet: string | null;
+      dislikedTags: string[];
+    },
+    matchedSensory: string[],
+  ): number {
+    const { allergies, diet, dislikedTags } = preferences;
+
+    // Safety — hard constraint + base score 40.
+    // Hard constraint: jika mengandung alergen user → 0, override semua criteria.
+    // Base score 40: menu aman dapat 40 poin otomatis (40% dari total 100).
+    // Ini memastikan safety adalah prioritas tertinggi tanpa menghitungnya
+    // sebagai bobot numerik yang bisa ditimpa criteria lain.
+    if (allergies.length > 0) {
+      const hasAllergen = allergies.some((a) => item.allergens.includes(a));
+      if (hasAllergen) return 0;
+    }
+
+    // Diet compatibility — 25%
+    let dietScore = 0;
+    if (diet) {
+      dietScore = item.tags.includes(diet) ? 25 : 0;
+    } else {
+      dietScore = 25;
+    }
+
+    // Sensory match — 20%
+    // Setiap match = 7 poin (20/3 ≈ 7), max 3 match = 21 → cap 20
+    const sensoryScore = Math.min(20, matchedSensory.length * 7);
+
+    // Preferred taste bonus — +20%
+    let bonus = 0;
+    if (
+      dislikedTags.length > 0 &&
+      dislikedTags.some((t) => item.tags.includes(t))
+    ) {
+      bonus = 20;
+    }
+
+    // Safety base — 40 poin untuk menu yang aman dari alergen.
+    // Ini memastikan range score 0–100 (40 base + max 60 dari criteria lain).
+    const total = 40 + dietScore + sensoryScore + bonus;
+    return Math.max(0, Math.min(100, total));
   }
 
   // ──────────────────────────────────────────────

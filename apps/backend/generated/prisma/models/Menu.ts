@@ -29,16 +29,12 @@ export type AggregateMenu = {
 export type MenuAvgAggregateOutputType = {
   price: number | null
   calories: number | null
-  rating: number | null
-  reviewCount: number | null
   prepMinutes: number | null
 }
 
 export type MenuSumAggregateOutputType = {
   price: number | null
   calories: number | null
-  rating: number | null
-  reviewCount: number | null
   prepMinutes: number | null
 }
 
@@ -46,6 +42,7 @@ export type MenuMinAggregateOutputType = {
   id: string | null
   name: string | null
   description: string | null
+  aiDescription: string | null
   price: number | null
   imageUrl: string | null
   category: string | null
@@ -53,8 +50,6 @@ export type MenuMinAggregateOutputType = {
   restaurant: string | null
   crossContaminationRisk: string | null
   calories: number | null
-  rating: number | null
-  reviewCount: number | null
   prepMinutes: number | null
   sourceUrl: string | null
   priceStatus: string | null
@@ -67,6 +62,7 @@ export type MenuMaxAggregateOutputType = {
   id: string | null
   name: string | null
   description: string | null
+  aiDescription: string | null
   price: number | null
   imageUrl: string | null
   category: string | null
@@ -74,8 +70,6 @@ export type MenuMaxAggregateOutputType = {
   restaurant: string | null
   crossContaminationRisk: string | null
   calories: number | null
-  rating: number | null
-  reviewCount: number | null
   prepMinutes: number | null
   sourceUrl: string | null
   priceStatus: string | null
@@ -88,6 +82,7 @@ export type MenuCountAggregateOutputType = {
   id: number
   name: number
   description: number
+  aiDescription: number
   price: number
   imageUrl: number
   category: number
@@ -100,8 +95,6 @@ export type MenuCountAggregateOutputType = {
   sensoryProfile: number
   crossContaminationRisk: number
   calories: number
-  rating: number
-  reviewCount: number
   prepMinutes: number
   sourceUrl: number
   priceStatus: number
@@ -115,16 +108,12 @@ export type MenuCountAggregateOutputType = {
 export type MenuAvgAggregateInputType = {
   price?: true
   calories?: true
-  rating?: true
-  reviewCount?: true
   prepMinutes?: true
 }
 
 export type MenuSumAggregateInputType = {
   price?: true
   calories?: true
-  rating?: true
-  reviewCount?: true
   prepMinutes?: true
 }
 
@@ -132,6 +121,7 @@ export type MenuMinAggregateInputType = {
   id?: true
   name?: true
   description?: true
+  aiDescription?: true
   price?: true
   imageUrl?: true
   category?: true
@@ -139,8 +129,6 @@ export type MenuMinAggregateInputType = {
   restaurant?: true
   crossContaminationRisk?: true
   calories?: true
-  rating?: true
-  reviewCount?: true
   prepMinutes?: true
   sourceUrl?: true
   priceStatus?: true
@@ -153,6 +141,7 @@ export type MenuMaxAggregateInputType = {
   id?: true
   name?: true
   description?: true
+  aiDescription?: true
   price?: true
   imageUrl?: true
   category?: true
@@ -160,8 +149,6 @@ export type MenuMaxAggregateInputType = {
   restaurant?: true
   crossContaminationRisk?: true
   calories?: true
-  rating?: true
-  reviewCount?: true
   prepMinutes?: true
   sourceUrl?: true
   priceStatus?: true
@@ -174,6 +161,7 @@ export type MenuCountAggregateInputType = {
   id?: true
   name?: true
   description?: true
+  aiDescription?: true
   price?: true
   imageUrl?: true
   category?: true
@@ -186,8 +174,6 @@ export type MenuCountAggregateInputType = {
   sensoryProfile?: true
   crossContaminationRisk?: true
   calories?: true
-  rating?: true
-  reviewCount?: true
   prepMinutes?: true
   sourceUrl?: true
   priceStatus?: true
@@ -287,6 +273,7 @@ export type MenuGroupByOutputType = {
   id: string
   name: string
   description: string | null
+  aiDescription: string | null
   price: number
   imageUrl: string | null
   category: string
@@ -299,8 +286,6 @@ export type MenuGroupByOutputType = {
   sensoryProfile: string[]
   crossContaminationRisk: string | null
   calories: number | null
-  rating: number
-  reviewCount: number
   prepMinutes: number
   sourceUrl: string | null
   priceStatus: string
@@ -336,6 +321,7 @@ export type MenuWhereInput = {
   id?: Prisma.StringFilter<"Menu"> | string
   name?: Prisma.StringFilter<"Menu"> | string
   description?: Prisma.StringNullableFilter<"Menu"> | string | null
+  aiDescription?: Prisma.StringNullableFilter<"Menu"> | string | null
   price?: Prisma.FloatFilter<"Menu"> | number
   imageUrl?: Prisma.StringNullableFilter<"Menu"> | string | null
   category?: Prisma.StringFilter<"Menu"> | string
@@ -348,8 +334,6 @@ export type MenuWhereInput = {
   sensoryProfile?: Prisma.StringNullableListFilter<"Menu">
   crossContaminationRisk?: Prisma.StringNullableFilter<"Menu"> | string | null
   calories?: Prisma.IntNullableFilter<"Menu"> | number | null
-  rating?: Prisma.FloatFilter<"Menu"> | number
-  reviewCount?: Prisma.IntFilter<"Menu"> | number
   prepMinutes?: Prisma.IntFilter<"Menu"> | number
   sourceUrl?: Prisma.StringNullableFilter<"Menu"> | string | null
   priceStatus?: Prisma.StringFilter<"Menu"> | string
@@ -362,6 +346,7 @@ export type MenuOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  aiDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -374,8 +359,6 @@ export type MenuOrderByWithRelationInput = {
   sensoryProfile?: Prisma.SortOrder
   crossContaminationRisk?: Prisma.SortOrderInput | Prisma.SortOrder
   calories?: Prisma.SortOrderInput | Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  reviewCount?: Prisma.SortOrder
   prepMinutes?: Prisma.SortOrder
   sourceUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   priceStatus?: Prisma.SortOrder
@@ -391,6 +374,7 @@ export type MenuWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.MenuWhereInput[]
   NOT?: Prisma.MenuWhereInput | Prisma.MenuWhereInput[]
   description?: Prisma.StringNullableFilter<"Menu"> | string | null
+  aiDescription?: Prisma.StringNullableFilter<"Menu"> | string | null
   price?: Prisma.FloatFilter<"Menu"> | number
   imageUrl?: Prisma.StringNullableFilter<"Menu"> | string | null
   category?: Prisma.StringFilter<"Menu"> | string
@@ -403,8 +387,6 @@ export type MenuWhereUniqueInput = Prisma.AtLeast<{
   sensoryProfile?: Prisma.StringNullableListFilter<"Menu">
   crossContaminationRisk?: Prisma.StringNullableFilter<"Menu"> | string | null
   calories?: Prisma.IntNullableFilter<"Menu"> | number | null
-  rating?: Prisma.FloatFilter<"Menu"> | number
-  reviewCount?: Prisma.IntFilter<"Menu"> | number
   prepMinutes?: Prisma.IntFilter<"Menu"> | number
   sourceUrl?: Prisma.StringNullableFilter<"Menu"> | string | null
   priceStatus?: Prisma.StringFilter<"Menu"> | string
@@ -417,6 +399,7 @@ export type MenuOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrderInput | Prisma.SortOrder
+  aiDescription?: Prisma.SortOrderInput | Prisma.SortOrder
   price?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -429,8 +412,6 @@ export type MenuOrderByWithAggregationInput = {
   sensoryProfile?: Prisma.SortOrder
   crossContaminationRisk?: Prisma.SortOrderInput | Prisma.SortOrder
   calories?: Prisma.SortOrderInput | Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  reviewCount?: Prisma.SortOrder
   prepMinutes?: Prisma.SortOrder
   sourceUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   priceStatus?: Prisma.SortOrder
@@ -451,6 +432,7 @@ export type MenuScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"Menu"> | string
   name?: Prisma.StringWithAggregatesFilter<"Menu"> | string
   description?: Prisma.StringNullableWithAggregatesFilter<"Menu"> | string | null
+  aiDescription?: Prisma.StringNullableWithAggregatesFilter<"Menu"> | string | null
   price?: Prisma.FloatWithAggregatesFilter<"Menu"> | number
   imageUrl?: Prisma.StringNullableWithAggregatesFilter<"Menu"> | string | null
   category?: Prisma.StringWithAggregatesFilter<"Menu"> | string
@@ -463,8 +445,6 @@ export type MenuScalarWhereWithAggregatesInput = {
   sensoryProfile?: Prisma.StringNullableListFilter<"Menu">
   crossContaminationRisk?: Prisma.StringNullableWithAggregatesFilter<"Menu"> | string | null
   calories?: Prisma.IntNullableWithAggregatesFilter<"Menu"> | number | null
-  rating?: Prisma.FloatWithAggregatesFilter<"Menu"> | number
-  reviewCount?: Prisma.IntWithAggregatesFilter<"Menu"> | number
   prepMinutes?: Prisma.IntWithAggregatesFilter<"Menu"> | number
   sourceUrl?: Prisma.StringNullableWithAggregatesFilter<"Menu"> | string | null
   priceStatus?: Prisma.StringWithAggregatesFilter<"Menu"> | string
@@ -477,6 +457,7 @@ export type MenuCreateInput = {
   id?: string
   name: string
   description?: string | null
+  aiDescription?: string | null
   price: number
   imageUrl?: string | null
   category: string
@@ -489,8 +470,6 @@ export type MenuCreateInput = {
   sensoryProfile?: Prisma.MenuCreatesensoryProfileInput | string[]
   crossContaminationRisk?: string | null
   calories?: number | null
-  rating?: number
-  reviewCount?: number
   prepMinutes?: number
   sourceUrl?: string | null
   priceStatus?: string
@@ -503,6 +482,7 @@ export type MenuUncheckedCreateInput = {
   id?: string
   name: string
   description?: string | null
+  aiDescription?: string | null
   price: number
   imageUrl?: string | null
   category: string
@@ -515,8 +495,6 @@ export type MenuUncheckedCreateInput = {
   sensoryProfile?: Prisma.MenuCreatesensoryProfileInput | string[]
   crossContaminationRisk?: string | null
   calories?: number | null
-  rating?: number
-  reviewCount?: number
   prepMinutes?: number
   sourceUrl?: string | null
   priceStatus?: string
@@ -529,6 +507,7 @@ export type MenuUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.FloatFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.StringFieldUpdateOperationsInput | string
@@ -541,8 +520,6 @@ export type MenuUpdateInput = {
   sensoryProfile?: Prisma.MenuUpdatesensoryProfileInput | string[]
   crossContaminationRisk?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   calories?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  reviewCount?: Prisma.IntFieldUpdateOperationsInput | number
   prepMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   sourceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priceStatus?: Prisma.StringFieldUpdateOperationsInput | string
@@ -555,6 +532,7 @@ export type MenuUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.FloatFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.StringFieldUpdateOperationsInput | string
@@ -567,8 +545,6 @@ export type MenuUncheckedUpdateInput = {
   sensoryProfile?: Prisma.MenuUpdatesensoryProfileInput | string[]
   crossContaminationRisk?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   calories?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  reviewCount?: Prisma.IntFieldUpdateOperationsInput | number
   prepMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   sourceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priceStatus?: Prisma.StringFieldUpdateOperationsInput | string
@@ -581,6 +557,7 @@ export type MenuCreateManyInput = {
   id?: string
   name: string
   description?: string | null
+  aiDescription?: string | null
   price: number
   imageUrl?: string | null
   category: string
@@ -593,8 +570,6 @@ export type MenuCreateManyInput = {
   sensoryProfile?: Prisma.MenuCreatesensoryProfileInput | string[]
   crossContaminationRisk?: string | null
   calories?: number | null
-  rating?: number
-  reviewCount?: number
   prepMinutes?: number
   sourceUrl?: string | null
   priceStatus?: string
@@ -607,6 +582,7 @@ export type MenuUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.FloatFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.StringFieldUpdateOperationsInput | string
@@ -619,8 +595,6 @@ export type MenuUpdateManyMutationInput = {
   sensoryProfile?: Prisma.MenuUpdatesensoryProfileInput | string[]
   crossContaminationRisk?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   calories?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  reviewCount?: Prisma.IntFieldUpdateOperationsInput | number
   prepMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   sourceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priceStatus?: Prisma.StringFieldUpdateOperationsInput | string
@@ -633,6 +607,7 @@ export type MenuUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
   description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  aiDescription?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   price?: Prisma.FloatFieldUpdateOperationsInput | number
   imageUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   category?: Prisma.StringFieldUpdateOperationsInput | string
@@ -645,8 +620,6 @@ export type MenuUncheckedUpdateManyInput = {
   sensoryProfile?: Prisma.MenuUpdatesensoryProfileInput | string[]
   crossContaminationRisk?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   calories?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
-  rating?: Prisma.FloatFieldUpdateOperationsInput | number
-  reviewCount?: Prisma.IntFieldUpdateOperationsInput | number
   prepMinutes?: Prisma.IntFieldUpdateOperationsInput | number
   sourceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   priceStatus?: Prisma.StringFieldUpdateOperationsInput | string
@@ -659,6 +632,7 @@ export type MenuCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  aiDescription?: Prisma.SortOrder
   price?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -671,8 +645,6 @@ export type MenuCountOrderByAggregateInput = {
   sensoryProfile?: Prisma.SortOrder
   crossContaminationRisk?: Prisma.SortOrder
   calories?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  reviewCount?: Prisma.SortOrder
   prepMinutes?: Prisma.SortOrder
   sourceUrl?: Prisma.SortOrder
   priceStatus?: Prisma.SortOrder
@@ -684,8 +656,6 @@ export type MenuCountOrderByAggregateInput = {
 export type MenuAvgOrderByAggregateInput = {
   price?: Prisma.SortOrder
   calories?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  reviewCount?: Prisma.SortOrder
   prepMinutes?: Prisma.SortOrder
 }
 
@@ -693,6 +663,7 @@ export type MenuMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  aiDescription?: Prisma.SortOrder
   price?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -700,8 +671,6 @@ export type MenuMaxOrderByAggregateInput = {
   restaurant?: Prisma.SortOrder
   crossContaminationRisk?: Prisma.SortOrder
   calories?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  reviewCount?: Prisma.SortOrder
   prepMinutes?: Prisma.SortOrder
   sourceUrl?: Prisma.SortOrder
   priceStatus?: Prisma.SortOrder
@@ -714,6 +683,7 @@ export type MenuMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
   description?: Prisma.SortOrder
+  aiDescription?: Prisma.SortOrder
   price?: Prisma.SortOrder
   imageUrl?: Prisma.SortOrder
   category?: Prisma.SortOrder
@@ -721,8 +691,6 @@ export type MenuMinOrderByAggregateInput = {
   restaurant?: Prisma.SortOrder
   crossContaminationRisk?: Prisma.SortOrder
   calories?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  reviewCount?: Prisma.SortOrder
   prepMinutes?: Prisma.SortOrder
   sourceUrl?: Prisma.SortOrder
   priceStatus?: Prisma.SortOrder
@@ -734,8 +702,6 @@ export type MenuMinOrderByAggregateInput = {
 export type MenuSumOrderByAggregateInput = {
   price?: Prisma.SortOrder
   calories?: Prisma.SortOrder
-  rating?: Prisma.SortOrder
-  reviewCount?: Prisma.SortOrder
   prepMinutes?: Prisma.SortOrder
 }
 
@@ -818,6 +784,7 @@ export type MenuSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   name?: boolean
   description?: boolean
+  aiDescription?: boolean
   price?: boolean
   imageUrl?: boolean
   category?: boolean
@@ -830,8 +797,6 @@ export type MenuSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sensoryProfile?: boolean
   crossContaminationRisk?: boolean
   calories?: boolean
-  rating?: boolean
-  reviewCount?: boolean
   prepMinutes?: boolean
   sourceUrl?: boolean
   priceStatus?: boolean
@@ -844,6 +809,7 @@ export type MenuSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   name?: boolean
   description?: boolean
+  aiDescription?: boolean
   price?: boolean
   imageUrl?: boolean
   category?: boolean
@@ -856,8 +822,6 @@ export type MenuSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   sensoryProfile?: boolean
   crossContaminationRisk?: boolean
   calories?: boolean
-  rating?: boolean
-  reviewCount?: boolean
   prepMinutes?: boolean
   sourceUrl?: boolean
   priceStatus?: boolean
@@ -870,6 +834,7 @@ export type MenuSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   name?: boolean
   description?: boolean
+  aiDescription?: boolean
   price?: boolean
   imageUrl?: boolean
   category?: boolean
@@ -882,8 +847,6 @@ export type MenuSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   sensoryProfile?: boolean
   crossContaminationRisk?: boolean
   calories?: boolean
-  rating?: boolean
-  reviewCount?: boolean
   prepMinutes?: boolean
   sourceUrl?: boolean
   priceStatus?: boolean
@@ -896,6 +859,7 @@ export type MenuSelectScalar = {
   id?: boolean
   name?: boolean
   description?: boolean
+  aiDescription?: boolean
   price?: boolean
   imageUrl?: boolean
   category?: boolean
@@ -908,8 +872,6 @@ export type MenuSelectScalar = {
   sensoryProfile?: boolean
   crossContaminationRisk?: boolean
   calories?: boolean
-  rating?: boolean
-  reviewCount?: boolean
   prepMinutes?: boolean
   sourceUrl?: boolean
   priceStatus?: boolean
@@ -918,7 +880,7 @@ export type MenuSelectScalar = {
   updatedAt?: boolean
 }
 
-export type MenuOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "price" | "imageUrl" | "category" | "cluster" | "restaurant" | "tags" | "allergens" | "ingredients" | "hiddenIngredients" | "sensoryProfile" | "crossContaminationRisk" | "calories" | "rating" | "reviewCount" | "prepMinutes" | "sourceUrl" | "priceStatus" | "isAvailable" | "createdAt" | "updatedAt", ExtArgs["result"]["menu"]>
+export type MenuOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "description" | "aiDescription" | "price" | "imageUrl" | "category" | "cluster" | "restaurant" | "tags" | "allergens" | "ingredients" | "hiddenIngredients" | "sensoryProfile" | "crossContaminationRisk" | "calories" | "prepMinutes" | "sourceUrl" | "priceStatus" | "isAvailable" | "createdAt" | "updatedAt", ExtArgs["result"]["menu"]>
 
 export type $MenuPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "Menu"
@@ -927,6 +889,7 @@ export type $MenuPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     name: string
     description: string | null
+    aiDescription: string | null
     price: number
     imageUrl: string | null
     category: string
@@ -939,8 +902,6 @@ export type $MenuPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sensoryProfile: string[]
     crossContaminationRisk: string | null
     calories: number | null
-    rating: number
-    reviewCount: number
     prepMinutes: number
     sourceUrl: string | null
     priceStatus: string
@@ -1373,6 +1334,7 @@ export interface MenuFieldRefs {
   readonly id: Prisma.FieldRef<"Menu", 'String'>
   readonly name: Prisma.FieldRef<"Menu", 'String'>
   readonly description: Prisma.FieldRef<"Menu", 'String'>
+  readonly aiDescription: Prisma.FieldRef<"Menu", 'String'>
   readonly price: Prisma.FieldRef<"Menu", 'Float'>
   readonly imageUrl: Prisma.FieldRef<"Menu", 'String'>
   readonly category: Prisma.FieldRef<"Menu", 'String'>
@@ -1385,8 +1347,6 @@ export interface MenuFieldRefs {
   readonly sensoryProfile: Prisma.FieldRef<"Menu", 'String[]'>
   readonly crossContaminationRisk: Prisma.FieldRef<"Menu", 'String'>
   readonly calories: Prisma.FieldRef<"Menu", 'Int'>
-  readonly rating: Prisma.FieldRef<"Menu", 'Float'>
-  readonly reviewCount: Prisma.FieldRef<"Menu", 'Int'>
   readonly prepMinutes: Prisma.FieldRef<"Menu", 'Int'>
   readonly sourceUrl: Prisma.FieldRef<"Menu", 'String'>
   readonly priceStatus: Prisma.FieldRef<"Menu", 'String'>

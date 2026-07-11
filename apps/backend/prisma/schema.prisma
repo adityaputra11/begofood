@@ -35,6 +35,7 @@ model Menu {
   id                     String   @id @default(uuid())
   name                   String   @unique
   description            String?
+  aiDescription          String?
   price                  Float
   imageUrl               String?
   category               String
@@ -47,8 +48,6 @@ model Menu {
   sensoryProfile         String[]
   crossContaminationRisk String?
   calories               Int?
-  rating                 Float    @default(4.5)
-  reviewCount            Int      @default(0)
   prepMinutes            Int      @default(25)
   sourceUrl              String?
   priceStatus            String   @default("simulated")

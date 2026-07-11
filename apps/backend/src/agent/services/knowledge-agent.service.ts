@@ -10,10 +10,12 @@ import { z } from 'zod';
 import { NebiusProviderStrategy } from '../strategies/nebius-provider.strategy.js';
 
 export const MENU_ANALYSIS_SCHEMA = z.object({
+  description: z.string(),
   ingredients: z.array(z.string()),
   allergens: z.array(z.string()),
   tags: z.array(z.string()),
   estimatedCalories: z.number().nullable(),
+  estimatedPrice: z.number().nullable().optional(),
 });
 
 export type MenuAnalysis = z.infer<typeof MENU_ANALYSIS_SCHEMA>;
@@ -83,6 +85,7 @@ function validateAllergens(
     const hasSantans = ingredients.some((i) =>
       /santan|kelapa|coconut/i.test(i),
     );
+    const ALLOWED_ALLERGENS = new Set(['kacang', 'susu', 'telur', 'seafood']);
     return detectedAllergens.filter((a) => {
       if (a === 'susu' && hasSantans) {
         // Cek beneran ada susu sapi?
@@ -91,13 +94,15 @@ function validateAllergens(
             i,
           ),
         );
-        return hasRealDairy;
+        return hasRealDairy && ALLOWED_ALLERGENS.has(a);
       }
-      return true;
+      return ALLOWED_ALLERGENS.has(a);
     });
   }
 
-  return Array.from(valid);
+  // Filter hanya 5 alergen yang didukung
+  const ALLOWED_ALLERGENS = new Set(['kacang', 'susu', 'telur', 'seafood']);
+  return Array.from(valid).filter((a) => ALLOWED_ALLERGENS.has(a));
 }
 
 @Injectable()
@@ -129,11 +134,12 @@ export class KnowledgeAgentService {
 Analisis nama dan deskripsi menu makanan berdasarkan data dari web.
 
 Identifikasi:
-1. Bahan-bahan utama (ingredients) — detil, pisahin per bahan
-2. Alergen yang mungkin terkandung (allergens) — pilih dari: kacang, susu, gluten, telur, seafood, kedelai, wijen, sulfit
+1. Deskripsi menu (description) — buat deskripsi yang kaya dan informatif dalam 2-3 kalimat, jelaskan bahan utama, tekstur, dan cita rasa
+2. Bahan-bahan utama (ingredients) — detil, pisahin per bahan
+3. Alergen yang mungkin terkandung (allergens) — pilih dari: kacang, susu, telur, seafood
    PERHATIAN: Santan/kelapa BUKAN alergen susu. Hanya susu sapi yg termasuk alergen susu.
-3. Tag diet/kategori (tags) — pilih dari: vegetarian, vegan, low_carb, high_protein, halal, gluten_free, low_fat, spicy, savory, sweet
-4. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin`,
+4. Tag diet/kategori (tags) — pilih dari: vegetarian, vegan, low_carb, high_protein, halal, gluten_free, low_fat, spicy, savory, sweet
+5. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin`,
       outputSchema: MENU_ANALYSIS_SCHEMA,
     });
 
@@ -142,7 +148,11 @@ Identifikasi:
     this.logger.log('Knowledge Agent siap (ADK + Exa)');
   }
 
-  async analyze(name: string, description?: string): Promise<MenuAnalysis> {
+  async analyze(
+    name: string,
+    description?: string,
+    sourceUrl?: string,
+  ): Promise<MenuAnalysis> {
     this.ensureReady();
 
     this.logger.log(`Menganalisis menu: "${name}"`);
@@ -151,7 +161,8 @@ Identifikasi:
     let webContext = '';
     if (this.exaClient) {
       try {
-        const query = `${name} ${description || ''} resep bahan alergen`.trim();
+        const query =
+          `${name} ${description || ''} ${sourceUrl || ''} resep bahan alergen`.trim();
         const result = await this.exaClient.search(query, {
           contents: { text: { maxCharacters: 3000 } },
         });
@@ -183,6 +194,16 @@ Identifikasi:
       })) {
         if (isFinalResponse(event)) {
           result = stringifyContent(event);
+          // Coba ambil langsung dari event.content.parts
+          try {
+            const parts = (event as any).content?.parts || [];
+            for (const part of parts) {
+              if (part.structuredContent) {
+                result = JSON.stringify(part.structuredContent);
+                break;
+              }
+            }
+          } catch {}
         }
       }
     } catch (error) {
@@ -192,8 +213,21 @@ Identifikasi:
 
     if (!result) return this.emptyResult();
 
+    // Ekstrak JSON object dari response LLM (yang mungkin ada teks sebelum/sesudah)
+    let cleanResult = result.trim();
+    // Hapus markdown code block
+    const codeMatch = cleanResult.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeMatch) {
+      cleanResult = codeMatch[1].trim();
+    }
+    // Cari JSON object pertama {...} di dalam string
+    const jsonMatch = cleanResult.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanResult = jsonMatch[0];
+    }
+
     try {
-      const parsed = JSON.parse(result) as MenuAnalysis;
+      const parsed = JSON.parse(cleanResult) as MenuAnalysis;
 
       // Validasi allergen berdasarkan ingredients
       const validatedAllergens = validateAllergens(
@@ -207,18 +241,21 @@ Identifikasi:
       };
 
       return MENU_ANALYSIS_SCHEMA.parse(final);
-    } catch {
-      this.logger.warn(`Gagal parse "${name}": ${result.slice(0, 100)}`);
+    } catch (parseError) {
+      this.logger.warn(`Gagal parse "${name}": ${cleanResult.slice(0, 120)}`);
+      this.logger.warn(`Parse error: ${(parseError as Error).message}`);
       return this.emptyResult();
     }
   }
 
   private emptyResult(): MenuAnalysis {
     return {
+      description: '',
       ingredients: [],
       allergens: [],
       tags: [],
       estimatedCalories: null,
+      estimatedPrice: null,
     };
   }
 

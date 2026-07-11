@@ -1,4 +1,4 @@
-import type { MenuResponse, Preferences } from './types';
+import type { MenuResponse, Persona, Preferences } from './types';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -14,6 +14,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(data?.message || 'Layanan Begofood belum dapat dihubungi.');
   }
   return response.json() as Promise<T>;
+}
+
+export function getPersonas() {
+  return request<Persona[]>('/agent/personas');
 }
 
 export function getMenus(params: {
