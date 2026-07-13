@@ -25,13 +25,11 @@ export function getMenus(params: {
   search?: string;
   category?: string;
   cluster?: string;
-  sensory?: string[];
 }) {
   const query = new URLSearchParams({ userId: params.userId });
   if (params.search) query.set('search', params.search);
   if (params.category) query.set('category', params.category);
   if (params.cluster) query.set('cluster', params.cluster);
-  if (params.sensory?.length) query.set('sensory', params.sensory.join(','));
   return request<MenuResponse>(`/agent/menu?${query}`);
 }
 

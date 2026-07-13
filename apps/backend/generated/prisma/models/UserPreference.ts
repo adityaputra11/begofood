@@ -27,7 +27,6 @@ export type AggregateUserPreference = {
 export type UserPreferenceMinAggregateOutputType = {
   id: string | null
   userId: string | null
-  diet: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -35,7 +34,6 @@ export type UserPreferenceMinAggregateOutputType = {
 export type UserPreferenceMaxAggregateOutputType = {
   id: string | null
   userId: string | null
-  diet: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -44,8 +42,8 @@ export type UserPreferenceCountAggregateOutputType = {
   id: number
   userId: number
   allergies: number
-  diet: number
-  dislikedTags: number
+  preferredSensory: number
+  preferredTastes: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -55,7 +53,6 @@ export type UserPreferenceCountAggregateOutputType = {
 export type UserPreferenceMinAggregateInputType = {
   id?: true
   userId?: true
-  diet?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -63,7 +60,6 @@ export type UserPreferenceMinAggregateInputType = {
 export type UserPreferenceMaxAggregateInputType = {
   id?: true
   userId?: true
-  diet?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,8 +68,8 @@ export type UserPreferenceCountAggregateInputType = {
   id?: true
   userId?: true
   allergies?: true
-  diet?: true
-  dislikedTags?: true
+  preferredSensory?: true
+  preferredTastes?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -155,8 +151,8 @@ export type UserPreferenceGroupByOutputType = {
   id: string
   userId: string
   allergies: string[]
-  diet: string | null
-  dislikedTags: string[]
+  preferredSensory: string[]
+  preferredTastes: string[]
   createdAt: Date
   updatedAt: Date
   _count: UserPreferenceCountAggregateOutputType | null
@@ -186,8 +182,8 @@ export type UserPreferenceWhereInput = {
   id?: Prisma.StringFilter<"UserPreference"> | string
   userId?: Prisma.StringFilter<"UserPreference"> | string
   allergies?: Prisma.StringNullableListFilter<"UserPreference">
-  diet?: Prisma.StringNullableFilter<"UserPreference"> | string | null
-  dislikedTags?: Prisma.StringNullableListFilter<"UserPreference">
+  preferredSensory?: Prisma.StringNullableListFilter<"UserPreference">
+  preferredTastes?: Prisma.StringNullableListFilter<"UserPreference">
   createdAt?: Prisma.DateTimeFilter<"UserPreference"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"UserPreference"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -197,8 +193,8 @@ export type UserPreferenceOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   allergies?: Prisma.SortOrder
-  diet?: Prisma.SortOrderInput | Prisma.SortOrder
-  dislikedTags?: Prisma.SortOrder
+  preferredSensory?: Prisma.SortOrder
+  preferredTastes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   user?: Prisma.UserOrderByWithRelationInput
@@ -211,8 +207,8 @@ export type UserPreferenceWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.UserPreferenceWhereInput[]
   NOT?: Prisma.UserPreferenceWhereInput | Prisma.UserPreferenceWhereInput[]
   allergies?: Prisma.StringNullableListFilter<"UserPreference">
-  diet?: Prisma.StringNullableFilter<"UserPreference"> | string | null
-  dislikedTags?: Prisma.StringNullableListFilter<"UserPreference">
+  preferredSensory?: Prisma.StringNullableListFilter<"UserPreference">
+  preferredTastes?: Prisma.StringNullableListFilter<"UserPreference">
   createdAt?: Prisma.DateTimeFilter<"UserPreference"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"UserPreference"> | Date | string
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
@@ -222,8 +218,8 @@ export type UserPreferenceOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   allergies?: Prisma.SortOrder
-  diet?: Prisma.SortOrderInput | Prisma.SortOrder
-  dislikedTags?: Prisma.SortOrder
+  preferredSensory?: Prisma.SortOrder
+  preferredTastes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserPreferenceCountOrderByAggregateInput
@@ -238,8 +234,8 @@ export type UserPreferenceScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"UserPreference"> | string
   userId?: Prisma.StringWithAggregatesFilter<"UserPreference"> | string
   allergies?: Prisma.StringNullableListFilter<"UserPreference">
-  diet?: Prisma.StringNullableWithAggregatesFilter<"UserPreference"> | string | null
-  dislikedTags?: Prisma.StringNullableListFilter<"UserPreference">
+  preferredSensory?: Prisma.StringNullableListFilter<"UserPreference">
+  preferredTastes?: Prisma.StringNullableListFilter<"UserPreference">
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"UserPreference"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"UserPreference"> | Date | string
 }
@@ -247,8 +243,8 @@ export type UserPreferenceScalarWhereWithAggregatesInput = {
 export type UserPreferenceCreateInput = {
   id?: string
   allergies?: Prisma.UserPreferenceCreateallergiesInput | string[]
-  diet?: string | null
-  dislikedTags?: Prisma.UserPreferenceCreatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceCreatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceCreatepreferredTastesInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutPreferencesInput
@@ -258,8 +254,8 @@ export type UserPreferenceUncheckedCreateInput = {
   id?: string
   userId: string
   allergies?: Prisma.UserPreferenceCreateallergiesInput | string[]
-  diet?: string | null
-  dislikedTags?: Prisma.UserPreferenceCreatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceCreatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceCreatepreferredTastesInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -267,8 +263,8 @@ export type UserPreferenceUncheckedCreateInput = {
 export type UserPreferenceUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allergies?: Prisma.UserPreferenceUpdateallergiesInput | string[]
-  diet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dislikedTags?: Prisma.UserPreferenceUpdatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceUpdatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceUpdatepreferredTastesInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutPreferencesNestedInput
@@ -278,8 +274,8 @@ export type UserPreferenceUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   allergies?: Prisma.UserPreferenceUpdateallergiesInput | string[]
-  diet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dislikedTags?: Prisma.UserPreferenceUpdatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceUpdatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceUpdatepreferredTastesInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -288,8 +284,8 @@ export type UserPreferenceCreateManyInput = {
   id?: string
   userId: string
   allergies?: Prisma.UserPreferenceCreateallergiesInput | string[]
-  diet?: string | null
-  dislikedTags?: Prisma.UserPreferenceCreatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceCreatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceCreatepreferredTastesInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -297,8 +293,8 @@ export type UserPreferenceCreateManyInput = {
 export type UserPreferenceUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allergies?: Prisma.UserPreferenceUpdateallergiesInput | string[]
-  diet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dislikedTags?: Prisma.UserPreferenceUpdatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceUpdatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceUpdatepreferredTastesInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -307,8 +303,8 @@ export type UserPreferenceUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.StringFieldUpdateOperationsInput | string
   allergies?: Prisma.UserPreferenceUpdateallergiesInput | string[]
-  diet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dislikedTags?: Prisma.UserPreferenceUpdatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceUpdatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceUpdatepreferredTastesInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -330,8 +326,8 @@ export type UserPreferenceCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   allergies?: Prisma.SortOrder
-  diet?: Prisma.SortOrder
-  dislikedTags?: Prisma.SortOrder
+  preferredSensory?: Prisma.SortOrder
+  preferredTastes?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -339,7 +335,6 @@ export type UserPreferenceCountOrderByAggregateInput = {
 export type UserPreferenceMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  diet?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -347,7 +342,6 @@ export type UserPreferenceMaxOrderByAggregateInput = {
 export type UserPreferenceMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  diet?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -388,7 +382,11 @@ export type UserPreferenceCreateallergiesInput = {
   set: string[]
 }
 
-export type UserPreferenceCreatedislikedTagsInput = {
+export type UserPreferenceCreatepreferredSensoryInput = {
+  set: string[]
+}
+
+export type UserPreferenceCreatepreferredTastesInput = {
   set: string[]
 }
 
@@ -397,11 +395,12 @@ export type UserPreferenceUpdateallergiesInput = {
   push?: string | string[]
 }
 
-export type NullableStringFieldUpdateOperationsInput = {
-  set?: string | null
+export type UserPreferenceUpdatepreferredSensoryInput = {
+  set?: string[]
+  push?: string | string[]
 }
 
-export type UserPreferenceUpdatedislikedTagsInput = {
+export type UserPreferenceUpdatepreferredTastesInput = {
   set?: string[]
   push?: string | string[]
 }
@@ -409,8 +408,8 @@ export type UserPreferenceUpdatedislikedTagsInput = {
 export type UserPreferenceCreateWithoutUserInput = {
   id?: string
   allergies?: Prisma.UserPreferenceCreateallergiesInput | string[]
-  diet?: string | null
-  dislikedTags?: Prisma.UserPreferenceCreatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceCreatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceCreatepreferredTastesInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -418,8 +417,8 @@ export type UserPreferenceCreateWithoutUserInput = {
 export type UserPreferenceUncheckedCreateWithoutUserInput = {
   id?: string
   allergies?: Prisma.UserPreferenceCreateallergiesInput | string[]
-  diet?: string | null
-  dislikedTags?: Prisma.UserPreferenceCreatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceCreatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceCreatepreferredTastesInput | string[]
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -443,8 +442,8 @@ export type UserPreferenceUpdateToOneWithWhereWithoutUserInput = {
 export type UserPreferenceUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allergies?: Prisma.UserPreferenceUpdateallergiesInput | string[]
-  diet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dislikedTags?: Prisma.UserPreferenceUpdatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceUpdatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceUpdatepreferredTastesInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -452,8 +451,8 @@ export type UserPreferenceUpdateWithoutUserInput = {
 export type UserPreferenceUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   allergies?: Prisma.UserPreferenceUpdateallergiesInput | string[]
-  diet?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  dislikedTags?: Prisma.UserPreferenceUpdatedislikedTagsInput | string[]
+  preferredSensory?: Prisma.UserPreferenceUpdatepreferredSensoryInput | string[]
+  preferredTastes?: Prisma.UserPreferenceUpdatepreferredTastesInput | string[]
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -464,8 +463,8 @@ export type UserPreferenceSelect<ExtArgs extends runtime.Types.Extensions.Intern
   id?: boolean
   userId?: boolean
   allergies?: boolean
-  diet?: boolean
-  dislikedTags?: boolean
+  preferredSensory?: boolean
+  preferredTastes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -475,8 +474,8 @@ export type UserPreferenceSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   userId?: boolean
   allergies?: boolean
-  diet?: boolean
-  dislikedTags?: boolean
+  preferredSensory?: boolean
+  preferredTastes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -486,8 +485,8 @@ export type UserPreferenceSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   id?: boolean
   userId?: boolean
   allergies?: boolean
-  diet?: boolean
-  dislikedTags?: boolean
+  preferredSensory?: boolean
+  preferredTastes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -497,13 +496,13 @@ export type UserPreferenceSelectScalar = {
   id?: boolean
   userId?: boolean
   allergies?: boolean
-  diet?: boolean
-  dislikedTags?: boolean
+  preferredSensory?: boolean
+  preferredTastes?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserPreferenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "allergies" | "diet" | "dislikedTags" | "createdAt" | "updatedAt", ExtArgs["result"]["userPreference"]>
+export type UserPreferenceOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "userId" | "allergies" | "preferredSensory" | "preferredTastes" | "createdAt" | "updatedAt", ExtArgs["result"]["userPreference"]>
 export type UserPreferenceInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
@@ -523,8 +522,8 @@ export type $UserPreferencePayload<ExtArgs extends runtime.Types.Extensions.Inte
     id: string
     userId: string
     allergies: string[]
-    diet: string | null
-    dislikedTags: string[]
+    preferredSensory: string[]
+    preferredTastes: string[]
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["userPreference"]>
@@ -954,8 +953,8 @@ export interface UserPreferenceFieldRefs {
   readonly id: Prisma.FieldRef<"UserPreference", 'String'>
   readonly userId: Prisma.FieldRef<"UserPreference", 'String'>
   readonly allergies: Prisma.FieldRef<"UserPreference", 'String[]'>
-  readonly diet: Prisma.FieldRef<"UserPreference", 'String'>
-  readonly dislikedTags: Prisma.FieldRef<"UserPreference", 'String[]'>
+  readonly preferredSensory: Prisma.FieldRef<"UserPreference", 'String[]'>
+  readonly preferredTastes: Prisma.FieldRef<"UserPreference", 'String[]'>
   readonly createdAt: Prisma.FieldRef<"UserPreference", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"UserPreference", 'DateTime'>
 }

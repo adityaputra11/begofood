@@ -19,17 +19,17 @@ import { createFilterMenuTool } from './tools/filter-menu.tool.js';
 import { createSavePreferenceTool } from './tools/save-preference.tool.js';
 import { createGetPreferenceTool } from './tools/get-preference.tool.js';
 import { createExaSearchTool } from './tools/exa-search.tool.js';
+import { calculateMenuMatchScore } from './match-score.js';
 
 // ── Type exports untuk backend filtering ──
 
 export interface MenuFilterInput {
   allergies?: string[];
-  diet?: string;
-  dislikedTags?: string[];
+  preferredSensory?: string[];
+  preferredTastes?: string[];
   category?: string;
   search?: string;
   cluster?: string;
-  sensory?: string[];
 }
 
 export interface FilteredMenuResult {
@@ -38,6 +38,7 @@ export interface FilteredMenuResult {
       safetyStatus: 'safe';
       matchScore: number;
       matchedSensory: string[];
+      matchedTastes: string[];
       recommendationReason: string;
     }
   >;
@@ -46,6 +47,7 @@ export interface FilteredMenuResult {
       safetyStatus: 'unsafe';
       matchScore: number;
       matchedSensory: string[];
+      matchedTastes: string[];
       reason: string;
     }
   >;
@@ -53,8 +55,8 @@ export interface FilteredMenuResult {
 
 export interface UserPreferenceResult {
   allergies: string[];
-  diet: string | null;
-  dislikedTags: string[];
+  preferredSensory: string[];
+  preferredTastes: string[];
   hasPreferences: boolean;
 }
 
@@ -197,31 +199,58 @@ export class AgentService {
 
     return {
       allergies: pref?.allergies ?? [],
-      diet: pref?.diet ?? null,
-      dislikedTags: pref?.dislikedTags ?? [],
+      preferredSensory: pref?.preferredSensory ?? [],
+      preferredTastes: pref?.preferredTastes ?? [],
       hasPreferences: !!pref,
     };
   }
 
-  private normalizeDislikedTags(tags?: string[]): string[] {
+  private normalizePreferredTastes(tags?: string[]): string[] {
     const map: Record<string, string> = {
       pedas: 'spicy',
       manis: 'sweet',
       asam: 'sour',
       gurih: 'savory',
-      pahit: 'savory',
     };
     return (tags ?? []).map((t) => map[t.toLowerCase()] || t);
   }
 
+  private supportedValues(
+    values: string[] | undefined,
+    supported: readonly string[],
+  ): string[] | undefined {
+    if (values === undefined) return undefined;
+    return [...new Set(values.filter((value) => supported.includes(value)))];
+  }
+
   async saveUserPreference(
     userId: string,
-    data: { allergies?: string[]; diet?: string; dislikedTags?: string[] },
+    data: {
+      allergies?: string[];
+      preferredSensory?: string[];
+      preferredTastes?: string[];
+    },
   ): Promise<{ message: string; preferences: UserPreferenceResult }> {
     // Normalize nilai
     const normalizedData = {
-      ...data,
-      dislikedTags: this.normalizeDislikedTags(data.dislikedTags),
+      allergies: this.supportedValues(data.allergies, [
+        'kacang',
+        'susu',
+        'telur',
+        'seafood',
+      ]),
+      preferredSensory: this.supportedValues(data.preferredSensory, [
+        'renyah',
+        'lembut',
+        'hangat',
+        'aromatik',
+      ]),
+      preferredTastes: this.supportedValues(
+        data.preferredTastes === undefined
+          ? undefined
+          : this.normalizePreferredTastes(data.preferredTastes),
+        ['spicy', 'sweet', 'sour', 'savory'],
+      ),
     };
 
     const existing = await this.prisma.userPreference.findUnique({
@@ -232,12 +261,14 @@ export class AgentService {
       await this.prisma.userPreference.update({
         where: { userId },
         data: {
-          ...(data.allergies !== undefined
-            ? { allergies: data.allergies }
+          ...(normalizedData.allergies !== undefined
+            ? { allergies: normalizedData.allergies }
             : {}),
-          ...(data.diet !== undefined ? { diet: data.diet } : {}),
-          ...(normalizedData.dislikedTags !== undefined
-            ? { dislikedTags: normalizedData.dislikedTags }
+          ...(normalizedData.preferredSensory !== undefined
+            ? { preferredSensory: normalizedData.preferredSensory }
+            : {}),
+          ...(normalizedData.preferredTastes !== undefined
+            ? { preferredTastes: normalizedData.preferredTastes }
             : {}),
         },
       });
@@ -257,9 +288,9 @@ export class AgentService {
       await this.prisma.userPreference.create({
         data: {
           userId,
-          allergies: data.allergies ?? [],
-          diet: data.diet ?? null,
-          dislikedTags: normalizedData.dislikedTags ?? [],
+          allergies: normalizedData.allergies ?? [],
+          preferredSensory: normalizedData.preferredSensory ?? [],
+          preferredTastes: normalizedData.preferredTastes ?? [],
         },
       });
     }
@@ -270,11 +301,11 @@ export class AgentService {
     if (saved.allergies.length) {
       parts.push(`Alergi: ${saved.allergies.join(', ')}`);
     }
-    if (saved.diet) {
-      parts.push(`Diet: ${saved.diet}`);
+    if (saved.preferredSensory.length) {
+      parts.push(`Sensoris: ${saved.preferredSensory.join(', ')}`);
     }
-    if (saved.dislikedTags.length) {
-      parts.push(`Gak suka: ${saved.dislikedTags.join(', ')}`);
+    if (saved.preferredTastes.length) {
+      parts.push(`Cita rasa: ${saved.preferredTastes.join(', ')}`);
     }
 
     return {
@@ -292,11 +323,11 @@ export class AgentService {
     const preferences = await this.getUserPreference(userId);
 
     const allergies = filters?.allergies ?? preferences.allergies;
-    const diet = filters?.diet ?? preferences.diet;
-    const dislikedTags = filters?.dislikedTags ?? preferences.dislikedTags;
+    const preferredSensory =
+      filters?.preferredSensory ?? preferences.preferredSensory;
+    const preferredTastes =
+      filters?.preferredTastes ?? preferences.preferredTastes;
     const { category, search, cluster } = filters ?? {};
-    const sensory = filters?.sensory ?? [];
-    const normalizedDiet = diet === 'none' ? null : diet;
     const searchWhere = search
       ? {
           OR: [
@@ -317,8 +348,6 @@ export class AgentService {
       ...(allergies.length > 0
         ? { NOT: { allergens: { hasSome: allergies } } }
         : {}),
-      ...(normalizedDiet ? { tags: { has: normalizedDiet } } : {}),
-
       ...(category ? { category } : {}),
       ...(cluster ? { cluster } : {}),
       ...searchWhere,
@@ -346,26 +375,30 @@ export class AgentService {
     return {
       safe: safeItems
         .map((item) => {
-          const matchedSensory = sensory.filter((value) =>
+          const matchedSensory = preferredSensory.filter((value) =>
             item.sensoryProfile.includes(value),
+          );
+          const matchedTastes = preferredTastes.filter((value) =>
+            item.tags.includes(value),
           );
           const matchScore = this.calculateMatchScore(
             item,
-            { allergies, diet: normalizedDiet, dislikedTags },
-            matchedSensory,
+            { allergies, preferredSensory, preferredTastes },
           );
           const reasonParts = ['Aman dari alergi yang tersimpan'];
           if (matchedSensory.length) {
-            reasonParts.push(`cocok untuk rasa ${matchedSensory.join(', ')}`);
+            reasonParts.push(`sesuai karakter sensoris`);
           }
-          if (normalizedDiet) reasonParts.push(`sesuai diet ${normalizedDiet}`);
-
+          if (matchedTastes.length) {
+            reasonParts.push(`sesuai preferensi cita rasa`);
+          }
           return {
             ...item,
             calories: item.calories ?? null,
             safetyStatus: 'safe' as const,
             matchScore,
             matchedSensory,
+            matchedTastes,
             recommendationReason: reasonParts.join(' dan '),
           };
         })
@@ -379,9 +412,8 @@ export class AgentService {
           calories: item.calories ?? null,
           safetyStatus: 'unsafe' as const,
           matchScore: 0,
-          matchedSensory: sensory.filter((value) =>
-            item.sensoryProfile.includes(value),
-          ),
+          matchedSensory: [],
+          matchedTastes: [],
           reason: [
             `Terdeteksi ${triggeredAllergens.join(', ')}`,
             item.hiddenIngredients.length
@@ -401,39 +433,21 @@ export class AgentService {
   /**
    * Multi-criteria weighted match score (0–100).
    *
-   * Safety adalah hard constraint + base value 40.
+   * Safety adalah hard constraint + base value 60.
    * Hard constraint: jika menu mengandung alergen user → langsung 0.
-   * Base score 40: jika aman, dapat 40 poin otomatis (40% dari total 100).
-   * 40 dipilih agar safety dominan tanpa numeric weight yang bisa ditimpa.
+   * Base score 60: jika aman, dapat 60 poin otomatis (60% dari total 100).
+   * 60 dipilih agar safety dominan dalam batas penelitian alergi dan cita rasa.
    * Konsisten dengan "allergen precondition filter" di Hafez et al. (2021).
    *
-   * Empat criteria sisanya diberi bobot dengan pertimbangan:
+   * Dua kriteria personalisasi yang terpisah digunakan: kecocokan sensoris
+   * (20%) dan kecocokan cita rasa (20%). Sensoris dibatasi pada renyah,
+   * lembut, hangat, dan aromatik. Cita rasa dibatasi pada pedas, manis, asam,
+   * dan gurih.
    *
-   * 1. Diet (25%) — preferensi pola makan seperti vegetarian/vegan/low_carb
-   *    bersifat binary (cocok/tidak). Bobot 25% karena diet adalah preferensi
-   *   生活方式 yang signifikan tapi tidak mengancam kesehatan seperti alergi.
-   *    Referensi: Kalpakoglou et al. (2025) menggunakan diet sebagai
-   *    primary filter setelah allergen.
-   *
-   * 2. Sensory (20%) — craving sensoris bersifat situasional (user bisa milih
-   *    "lagi ingin pedas" hari ini). Bobot 20% karena ini preferensi jangka
-   *    pendek, bobotnya lebih rendah dari diet yang bersifat jangka panjang.
-   *    Setiap sensory match = 7 poin (20/3 ≈ 7, dibulatkan). 3 sensory match
-   *    = 21 → di-cap di 20. Angka 7 dipilih agar 1 match tetap ≥ 7 poin
-   *    (lebih bermakna dari 0) tapi 3 match sudah maksimal.
-   *    Referensi: Hamdollahi Oskouei & Hashemzadeh (2023) menggunakan
-   *    similarity score berbasis atribut item.
-   *
-   * 3. Preferred taste (+20%) — rasa yang diinginkan (misal "pengen pedas").
-   *    Bobot +20% (sama besar dengan sensory match) sebagai bonus.
-   *    Menu yang cocok dengan preferensi rasa user dapat boost 20 poin.
-   *    Bersifat positif (bukan penalty) sesuai framing "lagi pengen rasa apa".
-   *
-   * Total: 40 (safety base) + 25 (diet) + 20 (sensory) + 20 (preferred taste) = 105 max.
+   * Total: 60 (safety base) + 20 (sensory match) + 20 (taste match) = 100.
    *
    * Referensi utama:
    * - Hafez et al. (2021) — multi-criteria recommendation + allergen precondition
-   * - Kalpakoglou et al. (2025) — AI-based nutrition scoring dengan diet & allergen
    * - Hamdollahi Oskouei & Hashemzadeh (2023) — FoodRecNet similarity scoring
    * - Brahimi (2025) — personalized menu recommendation + food allergy management
    */
@@ -445,48 +459,11 @@ export class AgentService {
     },
     preferences: {
       allergies: string[];
-      diet: string | null;
-      dislikedTags: string[];
+      preferredSensory: string[];
+      preferredTastes: string[];
     },
-    matchedSensory: string[],
   ): number {
-    const { allergies, diet, dislikedTags } = preferences;
-
-    // Safety — hard constraint + base score 40.
-    // Hard constraint: jika mengandung alergen user → 0, override semua criteria.
-    // Base score 40: menu aman dapat 40 poin otomatis (40% dari total 100).
-    // Ini memastikan safety adalah prioritas tertinggi tanpa menghitungnya
-    // sebagai bobot numerik yang bisa ditimpa criteria lain.
-    if (allergies.length > 0) {
-      const hasAllergen = allergies.some((a) => item.allergens.includes(a));
-      if (hasAllergen) return 0;
-    }
-
-    // Diet compatibility — 25%
-    let dietScore = 0;
-    if (diet) {
-      dietScore = item.tags.includes(diet) ? 25 : 0;
-    } else {
-      dietScore = 25;
-    }
-
-    // Sensory match — 20%
-    // Setiap match = 7 poin (20/3 ≈ 7), max 3 match = 21 → cap 20
-    const sensoryScore = Math.min(20, matchedSensory.length * 7);
-
-    // Preferred taste bonus — +20%
-    let bonus = 0;
-    if (
-      dislikedTags.length > 0 &&
-      dislikedTags.some((t) => item.tags.includes(t))
-    ) {
-      bonus = 20;
-    }
-
-    // Safety base — 40 poin untuk menu yang aman dari alergen.
-    // Ini memastikan range score 0–100 (40 base + max 60 dari criteria lain).
-    const total = 40 + dietScore + sensoryScore + bonus;
-    return Math.max(0, Math.min(100, total));
+    return calculateMenuMatchScore(item, preferences);
   }
 
   // ──────────────────────────────────────────────

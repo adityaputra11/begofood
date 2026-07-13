@@ -683,8 +683,8 @@ export const UserPreferenceScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   allergies: 'allergies',
-  diet: 'diet',
-  dislikedTags: 'dislikedTags',
+  preferredSensory: 'preferredSensory',
+  preferredTastes: 'preferredTastes',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

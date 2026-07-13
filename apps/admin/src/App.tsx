@@ -5,9 +5,9 @@ import './styles.css';
 
 const categories = ['main_course', 'appetizer', 'dessert', 'beverage', 'snack'];
 const clusters = ['western_indonesian', 'chinese_food', 'seafood'];
-const dietTags = ['vegetarian', 'vegan', 'low_carb', 'high_protein', 'halal', 'gluten_free', 'low_fat'];
+const tasteTags = ['spicy', 'savory', 'sweet', 'sour'];
 const allergenList = ['kacang', 'susu', 'telur', 'seafood'];
-const sensoryOptions = ['renyah', 'hangat', 'pedas', 'segar', 'gurih', 'smoky', 'creamy', 'empuk', 'kenyal', 'manis', 'asam', 'pahit'];
+const sensoryOptions = ['renyah', 'lembut', 'hangat', 'aromatik'];
 
 function LoginPage({ onLogin }: { onLogin: () => void }) {
   const [username, setUsername] = useState('');
@@ -190,9 +190,9 @@ function FullEditForm({ initial, onSave, onCancel }: { initial: Menu; onSave: ()
           <div className="field full" style={{ marginBottom: 8 }}><label>Deskripsi AI <span style={{fontWeight:400,color:'var(--muted)',textTransform:'none'}}>(hasil)</span></label><textarea value={form.aiDescription} rows={2} style={{ background: '#f8f7f4', color: 'var(--muted)' }} readOnly /></div>
         </div>
 
-        <div className="form-section"><h3>Tags & Diet</h3>
+        <div className="form-section"><h3>Tags Cita Rasa</h3>
           <div className="chip-group">
-            {dietTags.map((t) => <ChipBtn key={t} field={form.tags} value={t} variant="green" />)}
+            {tasteTags.map((t) => <ChipBtn key={t} field={form.tags} value={t} variant="green" />)}
             <button type="button" className="chip add" onClick={() => addCustom('tags')}>+ Custom</button>
           </div>
         </div>
@@ -205,7 +205,6 @@ function FullEditForm({ initial, onSave, onCancel }: { initial: Menu; onSave: ()
         <div className="form-section"><h3>Sensory Profile</h3>
           <div className="chip-group">
             {sensoryOptions.map((s) => <ChipBtn key={s} field={form.sensoryProfile} value={s} />)}
-            <button type="button" className="chip add" onClick={() => addCustom('sensoryProfile')}>+ Custom</button>
           </div>
         </div>
         <div className="form-section"><h3>Ingredients</h3>
@@ -335,7 +334,7 @@ function App() {
       <div className="stats">
         <div className="stat-card"><strong className="num">{menus.length}</strong><small>Total Menus</small></div>
         <div className="stat-card"><strong className="num danger">{allergenCount}</strong><small>Have Allergens</small></div>
-        <div className="stat-card"><strong className="num green">{menus.filter((m) => m.tags.length > 0).length}</strong><small>With Diet Tags</small></div>
+        <div className="stat-card"><strong className="num green">{menus.filter((m) => m.tags.length > 0).length}</strong><small>With Taste Tags</small></div>
       </div>
 
       {error && <div className="error">{error}</div>}

@@ -19,12 +19,12 @@ Setiap menu menyimpan:
 - komposisi utama (`ingredients`);
 - bahan yang sering tidak terlihat dari nama menu (`hiddenIngredients`);
 - alergen terstandardisasi (`allergens`);
-- karakter sensoris (`sensoryProfile`);
+- karakter sensoris (`sensoryProfile`): renyah, lembut, hangat, dan aromatik;
 - risiko proses bersama (`crossContaminationRisk`);
-- tag diet, estimasi kalori, klaster, kategori, status harga, dan sumber resmi.
+- tag cita rasa pedas, manis, asam, dan gurih; estimasi kalori; klaster; kategori; status harga; dan sumber resmi.
 - rating dan jumlah ulasan tidak digunakan dalam sistem final.
 
-Empat alergi utama sesuai batasan skripsi: `kacang`, `susu`, `telur`, dan `seafood`. Dataset juga menyimpan data alergen lain (`gluten`, `kedelai`, `wijen`) pada menu existing untuk kompatibilitas, namun sistem hanya menggunakan 4 alergen untuk filtering.
+Data alergi dibatasi pada `kacang`, `susu`, `telur`, dan `seafood`. Proses normalisasi seed dan migrasi mengeluarkan nilai alergen di luar empat kategori tersebut agar dataset, penyaringan, dan naskah menggunakan ruang lingkup yang sama.
 
 ## Aturan penggunaan
 

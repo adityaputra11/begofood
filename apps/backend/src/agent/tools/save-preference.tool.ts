@@ -5,56 +5,40 @@ import type { PrismaService } from '../../prisma/prisma.service.js';
 const VALID_ALLERGENS = [
   'kacang',
   'susu',
-  'gluten',
   'telur',
   'seafood',
-  'kedelai',
-  'wijen',
-  'sulfit',
-] as const;
-
-const VALID_DIETS = [
-  'vegetarian',
-  'vegan',
-  'low_carb',
-  'high_protein',
-  'halal',
-  'gluten_free',
-  'low_fat',
-  'none',
 ] as const;
 
 const VALID_TAGS = ['spicy', 'savory', 'sweet', 'sour'] as const;
+const VALID_SENSORY = ['renyah', 'lembut', 'hangat', 'aromatik'] as const;
 
 export function createSavePreferenceTool(prisma: PrismaService): FunctionTool {
   return new FunctionTool({
     name: 'save_preference',
-    description: `Simpan preferensi pengguna (alergi, diet, atau pantangan makanan).
+    description: `Simpan preferensi pengguna berupa alergi, karakter sensoris, dan cita rasa yang diinginkan.
 Panggil tool ini ketika user mengatakan sesuatu seperti:
 - "Aku alergi kacang"
-- "Aku lagi diet low carb"
 - "Aku gak bisa makan seafood"
-- "Aku vegetarian"
-- "Aku gak suka yang manis"
+- "Aku suka yang renyah dan manis"
 
 Valid allergens: ${VALID_ALLERGENS.join(', ')}
-Valid diets: ${VALID_DIETS.join(', ')}
-Valid dislike tags: ${VALID_TAGS.join(', ')}`,
+Valid sensory values: ${VALID_SENSORY.join(', ')}
+Valid taste tags: ${VALID_TAGS.join(', ')}`,
     parameters: z.object({
       allergies: z
         .array(z.string())
         .optional()
         .describe(`Daftar alergi yang valid: ${VALID_ALLERGENS.join(', ')}`),
-      diet: z
-        .string()
-        .optional()
-        .describe(`Diet yang valid: ${VALID_DIETS.join(', ')}`),
-      dislikedTags: z
+      preferredSensory: z
         .array(z.string())
         .optional()
-        .describe(`Rasa/kategori yang tidak disukai: ${VALID_TAGS.join(', ')}`),
+        .describe(`Karakter sensoris yang diinginkan: ${VALID_SENSORY.join(', ')}`),
+      preferredTastes: z
+        .array(z.string())
+        .optional()
+        .describe(`Cita rasa yang diinginkan: ${VALID_TAGS.join(', ')}`),
     }),
-    execute: async ({ allergies, diet, dislikedTags }, toolContext) => {
+    execute: async ({ allergies, preferredSensory, preferredTastes }, toolContext) => {
       const userId = toolContext?.userId;
       if (!userId) {
         return { success: false, message: 'User ID tidak ditemukan.' };
@@ -65,11 +49,11 @@ Valid dislike tags: ${VALID_TAGS.join(', ')}`,
         allergies?.filter(
           (a) => !(VALID_ALLERGENS as readonly string[]).includes(a),
         ) ?? [];
-      const unknownDiet =
-        diet && !(VALID_DIETS as readonly string[]).includes(diet)
-          ? diet
-          : null;
-      const normalizedTags = normalizeDislikedTags(dislikedTags);
+      const unknownSensory =
+        preferredSensory?.filter(
+          (value) => !(VALID_SENSORY as readonly string[]).includes(value),
+        ) ?? [];
+      const normalizedTags = normalizePreferredTastes(preferredTastes);
       const validTags =
         normalizedTags.filter((t) =>
           (VALID_TAGS as readonly string[]).includes(t),
@@ -81,7 +65,7 @@ Valid dislike tags: ${VALID_TAGS.join(', ')}`,
 
       if (
         unknownAllergies.length > 0 ||
-        unknownDiet ||
+        unknownSensory.length > 0 ||
         unknownTags.length > 0
       ) {
         const parts: string[] = [];
@@ -90,14 +74,14 @@ Valid dislike tags: ${VALID_TAGS.join(', ')}`,
             `"${unknownAllergies.join(', ')}" tidak dikenal. Alergi yang didukung: ${VALID_ALLERGENS.join(', ')}`,
           );
         }
-        if (unknownDiet) {
-          parts.push(
-            `"${unknownDiet}" tidak dikenal. Diet yang didukung: ${VALID_DIETS.join(', ')}`,
-          );
-        }
         if (unknownTags.length > 0) {
           parts.push(
             `"${unknownTags.join(', ')}" tidak dikenal. Tag yang didukung: ${VALID_TAGS.join(', ')}`,
+          );
+        }
+        if (unknownSensory.length > 0) {
+          parts.push(
+            `"${unknownSensory.join(', ')}" tidak dikenal. Sensoris yang didukung: ${VALID_SENSORY.join(', ')}`,
           );
         }
         throw new Error(parts.join('. '));
@@ -106,8 +90,8 @@ Valid dislike tags: ${VALID_TAGS.join(', ')}`,
       // ── Semua valid → simpan ──
       await savePreference(prisma, userId, {
         allergies,
-        diet,
-        dislikedTags: validTags,
+        preferredSensory,
+        preferredTastes: validTags,
       });
 
       const saved = await prisma.userPreference.findUnique({
@@ -116,14 +100,14 @@ Valid dislike tags: ${VALID_TAGS.join(', ')}`,
       const allergyText = saved?.allergies?.length
         ? `Alergi: ${saved.allergies.join(', ')}`
         : 'Tidak ada alergi tersimpan';
-      const dietText = saved?.diet
-        ? `Diet: ${saved.diet}`
-        : 'Tidak ada diet tersimpan';
-      const tagsText = saved?.dislikedTags?.length
-        ? `Gak suka: ${saved.dislikedTags.join(', ')}`
+      const sensoryText = saved?.preferredSensory?.length
+        ? `Sensoris: ${saved.preferredSensory.join(', ')}`
+        : '';
+      const tagsText = saved?.preferredTastes?.length
+        ? `Cita rasa: ${saved.preferredTastes.join(', ')}`
         : '';
 
-      const msg = [allergyText, dietText, tagsText].filter(Boolean).join('. ');
+      const msg = [allergyText, sensoryText, tagsText].filter(Boolean).join('. ');
 
       return {
         success: true,
@@ -134,13 +118,12 @@ Valid dislike tags: ${VALID_TAGS.join(', ')}`,
   });
 }
 
-function normalizeDislikedTags(tags?: string[]): string[] {
+function normalizePreferredTastes(tags?: string[]): string[] {
   const map: Record<string, string> = {
     pedas: 'spicy',
     manis: 'sweet',
     asam: 'sour',
     gurih: 'savory',
-    pahit: 'savory',
   };
   return (tags ?? []).map((t) => map[t.toLowerCase()] || t);
 }
@@ -148,7 +131,11 @@ function normalizeDislikedTags(tags?: string[]): string[] {
 async function savePreference(
   prisma: PrismaService,
   userId: string,
-  data: { allergies?: string[]; diet?: string; dislikedTags?: string[] },
+  data: {
+    allergies?: string[];
+    preferredSensory?: string[];
+    preferredTastes?: string[];
+  },
 ): Promise<void> {
   const existing = await prisma.userPreference.findUnique({
     where: { userId },
@@ -159,9 +146,11 @@ async function savePreference(
       where: { userId },
       data: {
         ...(data.allergies !== undefined ? { allergies: data.allergies } : {}),
-        ...(data.diet !== undefined ? { diet: data.diet } : {}),
-        ...(data.dislikedTags !== undefined
-          ? { dislikedTags: data.dislikedTags }
+        ...(data.preferredSensory !== undefined
+          ? { preferredSensory: data.preferredSensory }
+          : {}),
+        ...(data.preferredTastes !== undefined
+          ? { preferredTastes: data.preferredTastes }
           : {}),
       },
     });
@@ -170,8 +159,8 @@ async function savePreference(
       data: {
         userId,
         allergies: data.allergies ?? [],
-        diet: data.diet ?? null,
-        dislikedTags: data.dislikedTags ?? [],
+        preferredSensory: data.preferredSensory ?? [],
+        preferredTastes: data.preferredTastes ?? [],
       },
     });
   }

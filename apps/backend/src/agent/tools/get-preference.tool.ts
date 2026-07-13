@@ -4,14 +4,15 @@ import type { PrismaService } from '../../prisma/prisma.service.js';
 export function createGetPreferenceTool(prisma: PrismaService): FunctionTool {
   return new FunctionTool({
     name: 'get_preference',
-    description: `Ambil preferensi pengguna (alergi & diet) yang sudah tersimpan.
+    description: `Ambil preferensi pengguna (alergi, sensoris, dan cita rasa) yang sudah tersimpan.
 Gunakan tool ini untuk mengecek preferensi user sebelum memberikan rekomendasi menu.`,
     execute: async (_input, toolContext) => {
       const userId = toolContext?.userId;
       if (!userId) {
         return {
           allergies: [],
-          diet: null,
+          preferredSensory: [],
+          preferredTastes: [],
           message: 'User ID tidak ditemukan.',
         };
       }
@@ -22,7 +23,8 @@ Gunakan tool ini untuk mengecek preferensi user sebelum memberikan rekomendasi m
 
       return {
         allergies: pref?.allergies ?? [],
-        diet: pref?.diet ?? null,
+        preferredSensory: pref?.preferredSensory ?? [],
+        preferredTastes: pref?.preferredTastes ?? [],
         hasPreferences: !!pref,
       };
     },

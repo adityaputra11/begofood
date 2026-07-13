@@ -5,24 +5,17 @@ import type { PrismaService } from '../../prisma/prisma.service.js';
 export function createFilterMenuTool(prisma: PrismaService): FunctionTool {
   return new FunctionTool({
     name: 'filter_menu',
-    description: `Filter menu items berdasarkan alergi, preferensi diet, kategori, atau kata kunci.
+    description: `Filter menu berdasarkan alergi, kategori, karakter sensoris, cita rasa, atau kata kunci.
 Panggil tool ini ketika user ingin:
 - Melihat menu yang aman untuk alerginya
-- Mencari makanan sesuai diet (low_carb, vegan, halal, dll)
 - Mengetahui makanan mana yang mengandung alergen tertentu
-- Mencari menu berdasarkan kategori atau kata kunci`,
+- Mencari menu berdasarkan kategori, cita rasa, atau kata kunci`,
     parameters: z.object({
       allergies: z
         .array(z.string())
         .optional()
         .describe(
-          'Daftar alergen yang harus dihindari. Contoh: ["kacang", "susu", "gluten", "telur", "seafood", "kedelai", "wijen"]',
-        ),
-      diet: z
-        .string()
-        .optional()
-        .describe(
-          'Preferensi diet. Contoh: "vegetarian", "vegan", "low_carb", "halal", "high_protein"',
+          'Daftar alergen yang harus dihindari. Contoh: ["kacang", "susu", "telur", "seafood"]',
         ),
       category: z
         .string()
@@ -31,10 +24,14 @@ Panggil tool ini ketika user ingin:
           'Kategori menu. Contoh: "main_course", "dessert", "beverage", "snack", "appetizer"',
         ),
       search: z.string().optional().describe('Kata kunci pencarian nama menu'),
-      sensory: z
+      taste: z
         .array(z.string())
         .optional()
-        .describe('Karakter sensoris, misalnya renyah, hangat, gurih, smoky'),
+        .describe('Tag cita rasa: spicy, savory, sweet, atau sour'),
+      sensory: z
+        .array(z.enum(['renyah', 'lembut', 'hangat', 'aromatik']))
+        .optional()
+        .describe('Karakter sensoris: renyah, lembut, hangat, atau aromatik'),
       cluster: z
         .enum(['western_indonesian', 'chinese_food', 'seafood'])
         .optional()
@@ -42,9 +39,9 @@ Panggil tool ini ketika user ingin:
     }),
     execute: async ({
       allergies,
-      diet,
       category,
       search,
+      taste,
       sensory,
       cluster,
     }) => {
@@ -53,10 +50,12 @@ Panggil tool ini ketika user ingin:
         ...(allergies && allergies.length > 0
           ? { NOT: { allergens: { hasSome: allergies } } }
           : {}),
-        ...(diet ? { tags: { has: diet } } : {}),
         ...(category ? { category } : {}),
         ...(cluster ? { cluster } : {}),
-        ...(sensory?.length ? { sensoryProfile: { hasSome: sensory } } : {}),
+        ...(taste?.length ? { tags: { hasSome: taste } } : {}),
+        ...(sensory?.length
+          ? { sensoryProfile: { hasSome: sensory } }
+          : {}),
         ...(search
           ? { name: { contains: search, mode: 'insensitive' as const } }
           : {}),

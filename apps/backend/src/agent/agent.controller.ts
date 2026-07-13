@@ -31,7 +31,11 @@ const PERSONAS = [
     name: 'Andi',
     emoji: '👨‍🍳',
     bio: 'Penyuka pedas sejati — bebas alergi, pantang hambar',
-    preferences: { allergies: [], diet: null, dislikedTags: [] },
+    preferences: {
+      allergies: [],
+      preferredSensory: ['renyah'],
+      preferredTastes: ['spicy'],
+    },
   },
   {
     id: 'persona-budi',
@@ -40,8 +44,8 @@ const PERSONAS = [
     bio: 'Alergi kacang & seafood — harus ekstra hati-hati',
     preferences: {
       allergies: ['kacang', 'seafood'],
-      diet: null,
-      dislikedTags: [],
+      preferredSensory: ['hangat'],
+      preferredTastes: ['savory'],
     },
   },
   {
@@ -51,8 +55,8 @@ const PERSONAS = [
     bio: 'Alergi telur — hindari telur & olahannya',
     preferences: {
       allergies: ['telur'],
-      diet: null,
-      dislikedTags: [],
+      preferredSensory: ['lembut'],
+      preferredTastes: ['savory'],
     },
   },
 ];
@@ -231,15 +235,15 @@ export class AgentController {
     dto: {
       userId: string;
       allergies?: string[];
-      diet?: string;
-      dislikedTags?: string[];
+      preferredSensory?: string[];
+      preferredTastes?: string[];
     },
   ) {
     try {
       return await this.agentService.saveUserPreference(dto.userId, {
         allergies: dto.allergies,
-        diet: dto.diet,
-        dislikedTags: dto.dislikedTags,
+        preferredSensory: dto.preferredSensory,
+        preferredTastes: dto.preferredTastes,
       });
     } catch (error) {
       throw new InternalServerErrorException(
@@ -255,7 +259,6 @@ export class AgentController {
     @Query('category') category?: string,
     @Query('search') search?: string,
     @Query('cluster') cluster?: string,
-    @Query('sensory') sensory?: string,
   ) {
     try {
       const startedAt = performance.now();
@@ -263,10 +266,6 @@ export class AgentController {
         category,
         search,
         cluster,
-        sensory: sensory
-          ?.split(',')
-          .map((value) => value.trim())
-          .filter(Boolean),
       });
 
       return {

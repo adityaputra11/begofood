@@ -23,6 +23,7 @@ export type Menu = {
   safetyStatus?: SafetyStatus;
   matchScore?: number;
   matchedSensory?: string[];
+  matchedTastes?: string[];
   recommendationReason?: string;
   reason?: string;
 };
@@ -34,15 +35,15 @@ export type Persona = {
   bio: string;
   preferences: {
     allergies: string[];
-    diet: string | null;
-    dislikedTags: string[];
+    preferredSensory: string[];
+    preferredTastes: string[];
   };
 };
 
 export type Preferences = {
   allergies: string[];
-  diet: string | null;
-  dislikedTags: string[];
+  preferredSensory: string[];
+  preferredTastes: string[];
   hasPreferences: boolean;
 };
 

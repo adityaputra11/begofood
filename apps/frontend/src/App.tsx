@@ -18,7 +18,14 @@ const clusters = [
   { value: 'seafood', label: 'Seafood' },
 ];
 
-const sensoryOptions = ['renyah', 'hangat', 'pedas', 'segar', 'gurih'];
+const sensoryOptions = ['renyah', 'lembut', 'hangat', 'aromatik'];
+
+const tasteOptions = [
+  { value: 'spicy', label: 'pedas', icon: '🌶' },
+  { value: 'sweet', label: 'manis', icon: '🍬' },
+  { value: 'sour', label: 'asam', icon: '🍋' },
+  { value: 'savory', label: 'gurih', icon: '🧂' },
+];
 
 const allergyOptions = ['kacang', 'susu', 'telur', 'seafood'];
 
@@ -36,11 +43,11 @@ const fallbackMenus: Menu[] = [
     restaurant: 'Cinnamon - Mandarin Oriental Jakarta',
     sourceUrl:
       'https://photos.mandarinoriental.com/is/content/MandarinOriental/jakarta-restaurant-cinnamon-menu',
-    tags: ['halal', 'high_protein'],
+    tags: ['halal', 'high_protein', 'savory', 'spicy'],
     allergens: [],
     ingredients: ['daging sapi', 'santan', 'cabai'],
     hiddenIngredients: [],
-    sensoryProfile: ['empuk', 'gurih', 'pedas'],
+    sensoryProfile: ['lembut', 'aromatik'],
     calories: 468,
     priceStatus: 'simulated',
     prepMinutes: 35,
@@ -57,11 +64,11 @@ const fallbackMenus: Menu[] = [
     cluster: 'western_indonesian',
     restaurant: 'Pizza Marzano Indonesia',
     sourceUrl: 'https://www.pizzamarzano.co.id/menu/main-menu/',
-    tags: ['high_protein'],
+    tags: ['high_protein', 'savory'],
     allergens: ['susu', 'gluten', 'kacang'],
     ingredients: ['ayam', 'jamur portobello', 'mozzarella', 'pesto'],
     hiddenIngredients: ['susu pada mozzarella', 'kacang pada pesto'],
-    sensoryProfile: ['creamy', 'gurih', 'aromatik'],
+    sensoryProfile: ['lembut', 'aromatik'],
     calories: 360,
     priceStatus: 'simulated',
     prepMinutes: 17,
@@ -77,11 +84,11 @@ const fallbackMenus: Menu[] = [
     cluster: 'western_indonesian',
     restaurant: 'Sate Khas Senayan',
     sourceUrl: 'https://satekhas.sarirasa.co.id/menu',
-    tags: ['high_protein', 'low_carb'],
+    tags: ['high_protein', 'low_carb', 'spicy', 'savory'],
     allergens: [],
     ingredients: ['ayam', 'cabai', 'tomat', 'terasi'],
     hiddenIngredients: ['terasi fermentasi'],
-    sensoryProfile: ['juicy', 'smoky', 'pedas'],
+    sensoryProfile: ['lembut', 'aromatik'],
     calories: 380,
     priceStatus: 'official_snapshot_2026_07_11',
     prepMinutes: 28,
@@ -97,11 +104,11 @@ const fallbackMenus: Menu[] = [
     cluster: 'chinese_food',
     restaurant: 'Bakmi GM',
     sourceUrl: 'https://www.bakmigm.com/bakmi-spesial-gm',
-    tags: ['halal'],
+    tags: ['halal', 'savory'],
     allergens: ['gluten', 'telur', 'kedelai'],
     ingredients: ['mi telur', 'ayam', 'jamur'],
     hiddenIngredients: ['telur dan gluten pada mi'],
-    sensoryProfile: ['kenyal', 'gurih'],
+    sensoryProfile: ['lembut', 'renyah'],
     calories: 520,
     priceStatus: 'simulated',
     prepMinutes: 15,
@@ -117,11 +124,11 @@ const fallbackMenus: Menu[] = [
     cluster: 'seafood',
     restaurant: 'Bandar Djakarta',
     sourceUrl: 'https://www.bandar-djakarta.com/menu-udang/',
-    tags: ['high_protein', 'spicy'],
+    tags: ['high_protein', 'spicy', 'savory'],
     allergens: ['seafood', 'telur', 'kedelai'],
     ingredients: ['udang', 'saus tomat', 'telur'],
     hiddenIngredients: ['telur sebagai pengental'],
-    sensoryProfile: ['juicy', 'pedas', 'gurih'],
+    sensoryProfile: ['lembut', 'aromatik'],
     crossContaminationRisk:
       'Dimasak di wok yang juga menangani kepiting dan cumi.',
     calories: 430,
@@ -140,11 +147,11 @@ const fallbackMenus: Menu[] = [
     cluster: 'western_indonesian',
     restaurant: 'Pizza Marzano Indonesia',
     sourceUrl: 'https://www.pizzamarzano.co.id/menu/main-menu/',
-    tags: ['vegetarian'],
+    tags: ['vegetarian', 'spicy', 'savory'],
     allergens: ['gluten'],
     ingredients: ['pasta gandum', 'bawang putih', 'cabai'],
     hiddenIngredients: ['gluten pada pasta'],
-    sensoryProfile: ['al_dente', 'aromatik', 'pedas'],
+    sensoryProfile: ['lembut', 'aromatik'],
     calories: 480,
     priceStatus: 'simulated',
     prepMinutes: 20,
@@ -153,8 +160,8 @@ const fallbackMenus: Menu[] = [
 
 const defaultPreferences: Preferences = {
   allergies: [],
-  diet: 'none',
-  dislikedTags: [],
+  preferredSensory: [],
+  preferredTastes: [],
   hasPreferences: false,
 };
 
@@ -170,12 +177,16 @@ function clusterLabel(value: string) {
   return clusters.find((item) => item.value === value)?.label || value;
 }
 
+function tasteLabel(value: string) {
+  return tasteOptions.find((item) => item.value === value)?.label || value;
+}
+
 function App() {
   // Pre-populate with fallback so UI is never blank
   const fallbackPersonas: Persona[] = [
-    { id: 'persona-andi', name: 'Andi', emoji: '👨‍🍳', bio: 'Penyuka pedas sejati — bebas alergi, pantang hambar', preferences: { allergies: [], diet: null, dislikedTags: [] } },
-    { id: 'persona-budi', name: 'Budi', emoji: '🥜', bio: 'Alergi kacang & seafood — harus ekstra hati-hati', preferences: { allergies: ['kacang', 'seafood'], diet: null, dislikedTags: [] } },
-    { id: 'persona-dedi', name: 'Dedi', emoji: '💪', bio: 'Alergi telur — hindari telur & olahannya', preferences: { allergies: ['telur'], diet: null, dislikedTags: [] } },
+    { id: 'persona-andi', name: 'Andi', emoji: '👨‍🍳', bio: 'Suka tekstur renyah dan cita rasa pedas', preferences: { allergies: [], preferredSensory: ['renyah'], preferredTastes: ['spicy'] } },
+    { id: 'persona-budi', name: 'Budi', emoji: '🥜', bio: 'Alergi kacang & seafood, menyukai menu hangat dan gurih', preferences: { allergies: ['kacang', 'seafood'], preferredSensory: ['hangat'], preferredTastes: ['savory'] } },
+    { id: 'persona-dedi', name: 'Dedi', emoji: '💪', bio: 'Alergi telur, menyukai menu lembut dan gurih', preferences: { allergies: ['telur'], preferredSensory: ['lembut'], preferredTastes: ['savory'] } },
   ];
   const [personas, setPersonas] = useState<Persona[]>(fallbackPersonas);
   const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
@@ -188,7 +199,6 @@ function App() {
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [category, setCategory] = useState('');
   const [cluster, setCluster] = useState('');
-  const [sensory, setSensory] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [offline, setOffline] = useState(false);
   const [showUnsafe, setShowUnsafe] = useState(false);
@@ -247,8 +257,8 @@ function App() {
     try {
       const result = await savePreferences(persona.id, {
         allergies: persona.preferences.allergies,
-        diet: null,
-        dislikedTags: persona.preferences.dislikedTags,
+        preferredSensory: persona.preferences.preferredSensory,
+        preferredTastes: persona.preferences.preferredTastes,
       });
       setPreferences(result.preferences);
       setOffline(false);
@@ -269,7 +279,7 @@ function App() {
     if (!personaSelected) return;
     let active = true;
     setLoading(true);
-    getMenus({ userId, search: debouncedSearch, category, cluster, sensory })
+    getMenus({ userId, search: debouncedSearch, category, cluster })
       .then((data) => {
         if (!active) return;
         setMenus(data.safe);
@@ -295,13 +305,25 @@ function App() {
           preferences.allergies.some((a) => menu.allergens.includes(a)),
         );
         setMenus(
-          safe.map((menu) => ({
-            ...menu,
-            safetyStatus: 'safe' as const,
-            matchScore: 80,
-            matchedSensory: [],
-            recommendationReason: 'Aman dari alergi yang tersimpan',
-          })),
+          safe.map((menu) => {
+            const matchedSensory = preferences.preferredSensory.filter(
+              (value) => menu.sensoryProfile.includes(value),
+            );
+            const matchedTastes = preferences.preferredTastes.filter(
+              (value) => menu.tags.includes(value),
+            );
+            return {
+              ...menu,
+              safetyStatus: 'safe' as const,
+              matchScore:
+                60 +
+                (matchedSensory.length ? 20 : 0) +
+                (matchedTastes.length ? 20 : 0),
+              matchedSensory,
+              matchedTastes,
+              recommendationReason: 'Aman dan dinilai berdasarkan sensoris serta cita rasa',
+            };
+          }),
         );
         setUnsafeMenus(
           unsafe.map((menu) => ({
@@ -309,6 +331,7 @@ function App() {
             safetyStatus: 'unsafe' as const,
             matchScore: 0,
             matchedSensory: [],
+            matchedTastes: [],
             reason: `Terdeteksi ${preferences.allergies.filter((a) => menu.allergens.includes(a)).join(', ')}`,
           })),
         );
@@ -319,22 +342,23 @@ function App() {
       active = false;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, debouncedSearch, category, cluster, sensory, personaSelected, preferences.allergies]);
-
-  const toggleSensory = (value: string) => {
-    setSensory((current) =>
-      current.includes(value)
-        ? current.filter((item) => item !== value)
-        : [...current, value],
-    );
-  };
+  }, [
+    userId,
+    debouncedSearch,
+    category,
+    cluster,
+    personaSelected,
+    preferences.allergies,
+    preferences.preferredSensory,
+    preferences.preferredTastes,
+  ]);
 
   const updatePreferences = async (next: Preferences) => {
     try {
       const result = await savePreferences(userId, {
         allergies: next.allergies,
-        diet: null,
-        dislikedTags: next.dislikedTags,
+        preferredSensory: next.preferredSensory,
+        preferredTastes: next.preferredTastes,
       });
       setPreferences(result.preferences);
       setOffline(false);
@@ -375,8 +399,11 @@ function App() {
                   {persona.preferences.allergies.map((a) => (
                     <span className="warning-pill" key={a}>Tanpa {a}</span>
                   ))}
-                  {persona.preferences.dislikedTags.map((t) => (
-                    <span className="safe-pill" key={t}>Suka {t}</span>
+                  {persona.preferences.preferredSensory.map((value) => (
+                    <span className="safe-pill" key={value}>Sensoris {value}</span>
+                  ))}
+                  {persona.preferences.preferredTastes.map((value) => (
+                    <span className="safe-pill" key={value}>Rasa {tasteLabel(value)}</span>
                   ))}
                 </div>
               </button>
@@ -462,9 +489,14 @@ function App() {
               )}
 
 
-              {preferences.dislikedTags.length > 0 && (
+              {preferences.preferredSensory.length > 0 && (
                 <span className="safe-pill">
-                  Pengen {preferences.dislikedTags.join(', ')}
+                  Sensoris {preferences.preferredSensory.join(', ')}
+                </span>
+              )}
+              {preferences.preferredTastes.length > 0 && (
+                <span className="safe-pill">
+                  Rasa {preferences.preferredTastes.map(tasteLabel).join(', ')}
                 </span>
               )}
               <button
@@ -771,23 +803,45 @@ function PreferenceModal({
           </div>
         </fieldset>
         <fieldset>
-          <legend>Lagi pengen rasa apa hari ini?</legend>
+          <legend>Preferensi sensoris</legend>
           <div className="taste-chips dislike-chips">
-            {['pedas', 'manis', 'pahit', 'gurih'].map((item) => (
+            {sensoryOptions.map((item) => (
               <button
                 type="button"
-                className={draft.dislikedTags.includes(item) ? 'selected' : ''}
+                className={draft.preferredSensory.includes(item) ? 'selected' : ''}
                 key={item}
                 onClick={() =>
                   setDraft((current) => ({
                     ...current,
-                    dislikedTags: current.dislikedTags.includes(item)
-                      ? current.dislikedTags.filter((value) => value !== item)
-                      : [...current.dislikedTags, item],
+                    preferredSensory: current.preferredSensory.includes(item)
+                      ? current.preferredSensory.filter((value) => value !== item)
+                      : [...current.preferredSensory, item],
                   }))
                 }
               >
-                {item === 'pedas' ? '🌶' : item === 'manis' ? '🍬' : item === 'pahit' ? '☕' : '🧂'} {item}
+                {item === 'renyah' ? '🥨' : item === 'lembut' ? '🍮' : item === 'hangat' ? '♨️' : '🌿'} {item}
+              </button>
+            ))}
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>Preferensi cita rasa</legend>
+          <div className="taste-chips dislike-chips">
+            {tasteOptions.map((item) => (
+              <button
+                type="button"
+                className={draft.preferredTastes.includes(item.value) ? 'selected' : ''}
+                key={item.value}
+                onClick={() =>
+                  setDraft((current) => ({
+                    ...current,
+                    preferredTastes: current.preferredTastes.includes(item.value)
+                      ? current.preferredTastes.filter((value) => value !== item.value)
+                      : [...current.preferredTastes, item.value],
+                  }))
+                }
+              >
+                {item.icon} {item.label}
               </button>
             ))}
           </div>

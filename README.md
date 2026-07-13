@@ -1,15 +1,15 @@
 # Begofood AI
 
-Purwarupa skripsi sistem rekomendasi menu berbasis **multi-agent AI** dengan Google ADK, NestJS, Prisma/PostgreSQL, Bull MQ, dan React Vite. Sistem memadukan **Medical Agent** (filter alergi) dan **Psychological Agent** (preferensi rasa) untuk menyaring serta merekomendasikan menu.
+Purwarupa skripsi sistem rekomendasi menu berbasis **multi-agent AI** dengan Google ADK, NestJS, Prisma/PostgreSQL, Bull MQ, dan React Vite. Sistem memadukan **Medical Agent** (filter alergi) dan **Psychological Agent** (preferensi sensoris dan cita rasa) untuk menyaring serta merekomendasikan menu.
 
 ## Fitur Utama
 
 - **Multi-Agent AI** — Google ADK dengan DeepSeek V4 Pro + Exa search untuk analisis menu otomatis
 - **Medical Agent** — filter menu berdasarkan alergi (kacang, susu, telur, seafood)
-- **Psychological Agent** — cocokkan preferensi rasa (pedas, manis, pahit, gurih) dengan sensory profile menu
+- **Psychological Agent** — cocokkan sensoris (renyah, lembut, hangat, aromatik) dan cita rasa (pedas, manis, asam, gurih)
 - **Background Analysis** — Bull MQ + Redis untuk async processing analisis menu via AI
 - **Real-time Notifikasi** — SSE stream untuk progress analysis (Admin panel)
-- **Match Score** — multi-criteria weighted scoring (safety 40 + sensory 20 + preferred taste 20)
+- **Match Score** — *safety base* 60 + *sensory match* 20 + *taste match* 20
 - **Persona System** — 3 persona bawaan (Andi, Budi, Dedi) dengan preferensi berbeda
 - **Admin Panel** — CRUD menu, trigger analysis ulang, login auth (admin/Password123!)
 - **36 Menu Riset** — dari 3 klaster restoran (Western & Indonesia, Chinese Food, Seafood)
@@ -79,11 +79,11 @@ pnpm dev
 
 ## Persona
 
-| Persona | Alergi | ID |
-|---------|--------|----|
-| Andi 👨‍🍳 | Tidak ada | `persona-andi` |
-| Budi 🥜 | Kacang, Seafood | `persona-budi` |
-| Dedi 💪 | Telur | `persona-dedi` |
+| Persona | Alergi | Sensoris | Cita rasa | ID |
+|---------|--------|----------|-----------|----|
+| Andi 👨‍🍳 | Tidak ada | Renyah | Pedas | `persona-andi` |
+| Budi 🥜 | Kacang, seafood | Hangat | Gurih | `persona-budi` |
+| Dedi 💪 | Telur | Lembut | Gurih | `persona-dedi` |
 
 ## Tech Stack
 

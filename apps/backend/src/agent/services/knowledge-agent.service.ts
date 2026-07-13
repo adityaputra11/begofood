@@ -12,13 +12,17 @@ import { NebiusProviderStrategy } from '../strategies/nebius-provider.strategy.j
 export const MENU_ANALYSIS_SCHEMA = z.object({
   description: z.string(),
   ingredients: z.array(z.string()),
-  allergens: z.array(z.string()),
-  tags: z.array(z.string()),
+  allergens: z.array(z.enum(['kacang', 'susu', 'telur', 'seafood'])),
+  sensoryProfile: z.array(
+    z.enum(['renyah', 'lembut', 'hangat', 'aromatik']),
+  ),
+  tags: z.array(z.enum(['spicy', 'savory', 'sweet', 'sour'])),
   estimatedCalories: z.number().nullable(),
   estimatedPrice: z.number().nullable().optional(),
 });
 
 export type MenuAnalysis = z.infer<typeof MENU_ANALYSIS_SCHEMA>;
+type SupportedAllergen = MenuAnalysis['allergens'][number];
 
 // Map ingredient → allergen yang bener
 const INGREDIENT_ALLERGEN_MAP: Record<string, string[]> = {
@@ -57,7 +61,7 @@ const INGREDIENT_ALLERGEN_MAP: Record<string, string[]> = {
 function validateAllergens(
   ingredients: string[],
   detectedAllergens: string[],
-): string[] {
+): SupportedAllergen[] {
   const valid: Set<string> = new Set();
 
   for (const ing of ingredients) {
@@ -97,12 +101,14 @@ function validateAllergens(
         return hasRealDairy && ALLOWED_ALLERGENS.has(a);
       }
       return ALLOWED_ALLERGENS.has(a);
-    });
+    }) as SupportedAllergen[];
   }
 
-  // Filter hanya 5 alergen yang didukung
+  // Filter hanya empat alergen yang menjadi batas penelitian
   const ALLOWED_ALLERGENS = new Set(['kacang', 'susu', 'telur', 'seafood']);
-  return Array.from(valid).filter((a) => ALLOWED_ALLERGENS.has(a));
+  return Array.from(valid).filter((a) =>
+    ALLOWED_ALLERGENS.has(a),
+  ) as SupportedAllergen[];
 }
 
 @Injectable()
@@ -138,8 +144,9 @@ Identifikasi:
 2. Bahan-bahan utama (ingredients) — detil, pisahin per bahan
 3. Alergen yang mungkin terkandung (allergens) — pilih dari: kacang, susu, telur, seafood
    PERHATIAN: Santan/kelapa BUKAN alergen susu. Hanya susu sapi yg termasuk alergen susu.
-4. Tag diet/kategori (tags) — pilih dari: vegetarian, vegan, low_carb, high_protein, halal, gluten_free, low_fat, spicy, savory, sweet
-5. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin`,
+4. Tag cita rasa (tags) — pilih dari: spicy, savory, sweet, sour
+5. Karakter sensoris (sensoryProfile) — pilih dari: renyah, lembut, hangat, aromatik
+6. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin`,
       outputSchema: MENU_ANALYSIS_SCHEMA,
     });
 
@@ -253,6 +260,7 @@ Identifikasi:
       description: '',
       ingredients: [],
       allergens: [],
+      sensoryProfile: [],
       tags: [],
       estimatedCalories: null,
       estimatedPrice: null,

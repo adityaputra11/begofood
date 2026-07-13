@@ -40,6 +40,7 @@ export class MenuAnalysisProcessor {
       const hasData =
         analysis.ingredients.length > 0 ||
         analysis.allergens.length > 0 ||
+        analysis.sensoryProfile.length > 0 ||
         analysis.tags.length > 0 ||
         analysis.estimatedCalories !== null;
 
@@ -51,6 +52,7 @@ export class MenuAnalysisProcessor {
       const updateData: Record<string, unknown> = {
         ingredients: analysis.ingredients,
         allergens: analysis.allergens,
+        sensoryProfile: analysis.sensoryProfile,
         tags: analysis.tags,
         calories: analysis.estimatedCalories,
       };

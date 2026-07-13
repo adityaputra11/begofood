@@ -90,6 +90,46 @@ const officialPriceSnapshots = new Set([
   'Chicken Cordon Bleu',
 ]);
 
+const allowedAllergens = new Set(['kacang', 'susu', 'telur', 'seafood']);
+
+function normalizeSensoryProfile(values: string[]): string[] {
+  const normalized = new Set<string>();
+  for (const value of values) {
+    if (value === 'renyah') normalized.add('renyah');
+    if (
+      ['lembut', 'empuk', 'creamy', 'juicy', 'kenyal', 'al_dente', 'ringan'].includes(
+        value,
+      )
+    ) {
+      normalized.add('lembut');
+    }
+    if (value === 'hangat') normalized.add('hangat');
+    if (['aromatik', 'smoky', 'pekat', 'segar'].includes(value)) {
+      normalized.add('aromatik');
+    }
+  }
+  if (normalized.size === 0) normalized.add('aromatik');
+  return [...normalized];
+}
+
+function normalizeTags(tags: string[], sensoryProfile: string[]): string[] {
+  const normalized = new Set(tags);
+  const tasteAliases: Record<string, string> = {
+    pedas: 'spicy',
+    manis: 'sweet',
+    asam: 'sour',
+    asam_manis: 'sour',
+    gurih: 'savory',
+  };
+  for (const value of sensoryProfile) {
+    const taste = tasteAliases[value];
+    if (taste) normalized.add(taste);
+  }
+  // Tag non-rasa tetap dapat menjadi metadata. Hanya spicy, sweet, sour,
+  // dan savory yang dibaca sebagai variabel cita rasa oleh rekomendasi.
+  return [...normalized].map((value) => tasteAliases[value] ?? value);
+}
+
 // Nilai sumber lama pada objek di bawah selalu ditimpa oleh sumber resmi
 // berdasarkan restoran/menu sebelum upsert.
 const mahi = '';
@@ -795,6 +835,9 @@ async function main() {
       }
       const verifiedMenu = {
         ...menu,
+        allergens: menu.allergens.filter((value) => allowedAllergens.has(value)),
+        sensoryProfile: normalizeSensoryProfile(menu.sensoryProfile),
+        tags: normalizeTags(menu.tags, menu.sensoryProfile),
         sourceUrl: verifiedSourceUrl,
         priceStatus: officialPriceSnapshots.has(menu.name)
           ? 'official_snapshot_2026_07_11'
