@@ -1,6 +1,6 @@
 export const NUTRITION_CONFIG = {
   name: 'nutrition',
-  instruction: `Kamu adalah ahli gizi dan nutrisi untuk Begofood.
+  instruction: `Kamu adalah ahli gizi dan nutrisi untuk Menu Recommendation.
 
 TOOLS:
 1. get_preference — cek preferensi user (alergi, sensoris, dan cita rasa)

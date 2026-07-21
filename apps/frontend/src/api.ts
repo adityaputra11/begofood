@@ -11,7 +11,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     const data = (await response.json().catch(() => null)) as {
       message?: string;
     } | null;
-    throw new Error(data?.message || 'Layanan Begofood belum dapat dihubungi.');
+    throw new Error(data?.message || 'Layanan Menu Recommendation belum dapat dihubungi.');
   }
   return response.json() as Promise<T>;
 }

@@ -1,7 +1,7 @@
 -- Enrich the research menu dataset with traceable restaurant, sensory, and safety metadata.
 ALTER TABLE "Menu"
   ADD COLUMN "cluster" TEXT NOT NULL DEFAULT 'western_indonesian',
-  ADD COLUMN "restaurant" TEXT NOT NULL DEFAULT 'Begofood Kitchen',
+  ADD COLUMN "restaurant" TEXT NOT NULL DEFAULT 'Menu Recommendation Kitchen',
   ADD COLUMN "hiddenIngredients" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
   ADD COLUMN "sensoryProfile" TEXT[] NOT NULL DEFAULT ARRAY[]::TEXT[],
   ADD COLUMN "crossContaminationRisk" TEXT,

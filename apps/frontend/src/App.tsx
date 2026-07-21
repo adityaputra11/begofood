@@ -373,9 +373,9 @@ function App() {
     return (
       <div className="app-shell">
         <header className="topbar">
-          <a className="brand" href="#top" aria-label="Begofood home">
-            <span className="brand-mark">b</span>
-            <span>begofood</span>
+          <a className="brand" href="#top" aria-label="Menu Recommendation home">
+            <span className="brand-mark">m</span>
+            <span>Menu Recommendation</span>
           </a>
         </header>
         <main className="persona-picker">
@@ -417,9 +417,9 @@ function App() {
   return (
     <div className="app-shell">
       <header className="topbar">
-        <a className="brand" href="#top" aria-label="Begofood home">
-          <span className="brand-mark">b</span>
-          <span>begofood</span>
+        <a className="brand" href="#top" aria-label="Menu Recommendation home">
+          <span className="brand-mark">m</span>
+          <span>Menu Recommendation</span>
         </a>
         <nav className="desktop-nav" aria-label="Navigasi utama">
           <a className="active" href="#recommendations">
@@ -634,8 +634,8 @@ function App() {
 
       <footer>
         <div className="brand footer-brand">
-          <span className="brand-mark">b</span>
-          <span>begofood</span>
+          <span className="brand-mark">m</span>
+          <span>Menu Recommendation</span>
         </div>
         <p>Purwarupa sistem rekomendasi menu berbasis Agentic AI.</p>
         <span>Data katalog untuk simulasi penelitian • 2026</span>

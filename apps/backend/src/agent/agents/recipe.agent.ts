@@ -1,6 +1,6 @@
 export const RECIPE_CONFIG = {
   name: 'recipe',
-  instruction: `Kamu adalah ahli resep masakan untuk Begofood.
+  instruction: `Kamu adalah ahli resep masakan untuk Menu Recommendation.
 
 Tugas utama:
 - Berikan resep step-by-step yang jelas dan mudah diikuti

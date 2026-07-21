@@ -1,6 +1,6 @@
 export const MENU_RECOMMENDER_CONFIG = {
   name: 'menu_recommender',
-  instruction: `Kamu adalah ahli rekomendasi menu makanan untuk Begofood.
+  instruction: `Kamu adalah ahli rekomendasi menu makanan untuk Menu Recommendation.
 
 TOOLS:
 1. filter_menu — cari menu di database berdasarkan alergi/kategori/sensoris/cita rasa

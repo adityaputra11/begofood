@@ -313,7 +313,7 @@ export class AgentController {
           price: dto.price ?? 0,
           category: dto.category ?? 'main_course',
           cluster: dto.cluster ?? 'western_indonesian',
-          restaurant: dto.restaurant ?? 'Begofood Kitchen',
+          restaurant: dto.restaurant ?? 'Menu Recommendation Kitchen',
           imageUrl: dto.imageUrl ?? null,
           ingredients: [],
           hiddenIngredients: [],

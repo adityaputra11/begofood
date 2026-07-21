@@ -29,7 +29,7 @@ function LoginPage({ onLogin }: { onLogin: () => void }) {
       <div className="login-card">
         <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <span style={{ fontSize: 48, display: 'block', marginBottom: 12 }}>🍽</span>
-          <h1 style={{ fontSize: 22, marginBottom: 4 }}>Begofood Admin</h1>
+          <h1 style={{ fontSize: 22, marginBottom: 4 }}>Menu Recommendation Admin</h1>
           <p style={{ color: 'var(--muted)', fontSize: 13 }}>Masuk untuk mengelola menu</p>
         </div>
         {error && <div className="error">{error}</div>}
@@ -321,7 +321,7 @@ function App() {
   return (
     <div className="app">
       <div className="topbar">
-        <h1><span>🍽</span> Begofood Admin</h1>
+        <h1><span>🍽</span> Menu Recommendation Admin</h1>
         <div className="topbar-actions">
           <div className="search-box">
             <input placeholder="Search menus..." value={search} onChange={(e) => setSearch(e.target.value)} />
