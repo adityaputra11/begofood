@@ -24,6 +24,24 @@ export const MENU_ANALYSIS_SCHEMA = z.object({
 export type MenuAnalysis = z.infer<typeof MENU_ANALYSIS_SCHEMA>;
 type SupportedAllergen = MenuAnalysis['allergens'][number];
 
+function normalizeEnumValues(
+  values: unknown,
+  aliases: Record<string, string>,
+  allowed: Set<string>,
+): string[] {
+  if (!Array.isArray(values)) return [];
+
+  return Array.from(
+    new Set(
+      values
+        .filter((value): value is string => typeof value === 'string')
+        .map((value) => value.toLowerCase().trim())
+        .map((value) => aliases[value] ?? value)
+        .filter((value) => allowed.has(value)),
+    ),
+  );
+}
+
 // Map ingredient → allergen yang bener
 const INGREDIENT_ALLERGEN_MAP: Record<string, string[]> = {
   santan: [],
@@ -234,17 +252,68 @@ Identifikasi:
     }
 
     try {
-      const parsed = JSON.parse(cleanResult) as MenuAnalysis;
+      const parsed = JSON.parse(cleanResult) as Record<string, unknown>;
+      const ingredients = Array.isArray(parsed.ingredients)
+        ? parsed.ingredients.filter(
+            (ingredient): ingredient is string =>
+              typeof ingredient === 'string',
+          )
+        : [];
+
+      const sensoryProfile = normalizeEnumValues(
+        parsed.sensoryProfile,
+        {
+          crispy: 'renyah',
+          crunchy: 'renyah',
+          chewy: 'lembut',
+          soft: 'lembut',
+          tender: 'lembut',
+          warm: 'hangat',
+          hot: 'hangat',
+          aromatic: 'aromatik',
+          fragrant: 'aromatik',
+        },
+        new Set(['renyah', 'lembut', 'hangat', 'aromatik']),
+      ) as MenuAnalysis['sensoryProfile'];
+
+      const tags = normalizeEnumValues(
+        parsed.tags,
+        {
+          pedas: 'spicy',
+          gurih: 'savory',
+          manis: 'sweet',
+          asam: 'sour',
+        },
+        new Set(['spicy', 'savory', 'sweet', 'sour']),
+      ) as MenuAnalysis['tags'];
+
+      const detectedAllergens = normalizeEnumValues(
+        parsed.allergens,
+        { peanut: 'kacang', dairy: 'susu', egg: 'telur' },
+        new Set(['kacang', 'susu', 'telur', 'seafood']),
+      );
 
       // Validasi allergen berdasarkan ingredients
       const validatedAllergens = validateAllergens(
-        parsed.ingredients,
-        parsed.allergens,
+        ingredients,
+        detectedAllergens,
       );
 
       const final: MenuAnalysis = {
-        ...parsed,
+        description:
+          typeof parsed.description === 'string' ? parsed.description : '',
+        ingredients,
         allergens: validatedAllergens,
+        sensoryProfile,
+        tags,
+        estimatedCalories:
+          typeof parsed.estimatedCalories === 'number'
+            ? parsed.estimatedCalories
+            : null,
+        estimatedPrice:
+          typeof parsed.estimatedPrice === 'number'
+            ? parsed.estimatedPrice
+            : null,
       };
 
       return MENU_ANALYSIS_SCHEMA.parse(final);
