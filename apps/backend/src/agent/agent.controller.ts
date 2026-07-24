@@ -317,9 +317,11 @@ export class AgentController {
     @Body() dto: CreateMenuDto,
   ): Promise<{ menu: unknown; message: string }> {
     try {
-      const menu = await this.prisma.menu.create({
-        data: {
-          name: dto.name,
+      const name = dto.name.trim();
+      const menu = await this.prisma.menu.upsert({
+        where: { name },
+        create: {
+          name,
           description: dto.description ?? null,
           sourceUrl: dto.sourceUrl ?? null,
           price: dto.price ?? 0,
@@ -333,6 +335,19 @@ export class AgentController {
           allergens: [],
           tags: [],
           calories: null,
+        },
+        update: {
+          ...(dto.description !== undefined
+            ? { description: dto.description }
+            : {}),
+          ...(dto.sourceUrl !== undefined ? { sourceUrl: dto.sourceUrl } : {}),
+          ...(dto.price !== undefined ? { price: dto.price } : {}),
+          ...(dto.category !== undefined ? { category: dto.category } : {}),
+          ...(dto.cluster !== undefined ? { cluster: dto.cluster } : {}),
+          ...(dto.restaurant !== undefined
+            ? { restaurant: dto.restaurant }
+            : {}),
+          ...(dto.imageUrl !== undefined ? { imageUrl: dto.imageUrl } : {}),
         },
       });
 
