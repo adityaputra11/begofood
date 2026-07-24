@@ -13,7 +13,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import type { MessageEvent } from '@nestjs/common';
-import { Observable, map } from 'rxjs';
+import { Observable, interval, map, merge } from 'rxjs';
 import { InjectQueue } from '@nestjs/bull';
 import type { Queue } from 'bull';
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -291,12 +291,24 @@ export class AgentController {
   @Sse('analysis/stream')
   @HttpCode(HttpStatus.OK)
   analysisStream(): Observable<MessageEvent> {
-    return this.events.stream.pipe(
+    const analysisEvents = this.events.stream.pipe(
       map((event) => ({
         type: 'message',
         data: JSON.stringify(event),
       })),
     );
+
+    // Keep the connection active through Cloudflare and Nginx while an AI
+    // analysis is running. Without periodic bytes, idle SSE connections can
+    // be closed by an upstream proxy and surface as HTTP 524.
+    const heartbeat = interval(25_000).pipe(
+      map(() => ({
+        type: 'heartbeat',
+        data: JSON.stringify({ timestamp: new Date().toISOString() }),
+      })),
+    );
+
+    return merge(analysisEvents, heartbeat);
   }
 
   @Post('menu')
