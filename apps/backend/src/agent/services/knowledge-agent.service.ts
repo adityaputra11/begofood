@@ -44,6 +44,18 @@ function normalizeEnumValues(
   );
 }
 
+function normalizePrice(value: unknown): number | null {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0 ? Math.round(value) : null;
+  }
+  if (typeof value !== 'string') return null;
+
+  const digits = value.replace(/[^\d]/g, '');
+  if (!digits) return null;
+  const price = Number(digits);
+  return Number.isFinite(price) && price > 0 ? price : null;
+}
+
 // Map ingredient → allergen yang bener
 const INGREDIENT_ALLERGEN_MAP: Record<string, string[]> = {
   santan: [],
@@ -168,7 +180,8 @@ Identifikasi:
 5. Risiko kontaminasi silang (crossContaminationRisk) — jelaskan singkat risiko dari alat masak, minyak goreng, atau area dapur bersama; null jika tidak ada indikasi
 6. Tag cita rasa (tags) — pilih dari: spicy, savory, sweet, sour
 7. Karakter sensoris (sensoryProfile) — pilih dari: renyah, lembut, hangat, aromatik
-8. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin`,
+8. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin
+9. Estimasi harga jual per porsi di Indonesia (estimatedPrice) — wajib isi angka rupiah tanpa simbol atau pemisah ribuan, berdasarkan bahan, jenis restoran, dan harga pasar yang wajar`,
       outputSchema: MENU_ANALYSIS_SCHEMA,
     });
 
@@ -326,10 +339,7 @@ Identifikasi:
           typeof parsed.estimatedCalories === 'number'
             ? parsed.estimatedCalories
             : null,
-        estimatedPrice:
-          typeof parsed.estimatedPrice === 'number'
-            ? parsed.estimatedPrice
-            : null,
+        estimatedPrice: normalizePrice(parsed.estimatedPrice),
       };
 
       return MENU_ANALYSIS_SCHEMA.parse(final);
