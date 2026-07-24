@@ -39,7 +39,9 @@ export class MenuAnalysisProcessor {
       // Hanya update kalo dapet hasil yang berarti
       const hasData =
         analysis.ingredients.length > 0 ||
+        analysis.hiddenIngredients.length > 0 ||
         analysis.allergens.length > 0 ||
+        analysis.crossContaminationRisk !== null ||
         analysis.sensoryProfile.length > 0 ||
         analysis.tags.length > 0 ||
         analysis.estimatedCalories !== null;
@@ -51,7 +53,9 @@ export class MenuAnalysisProcessor {
 
       const updateData: Record<string, unknown> = {
         ingredients: analysis.ingredients,
+        hiddenIngredients: analysis.hiddenIngredients,
         allergens: analysis.allergens,
+        crossContaminationRisk: analysis.crossContaminationRisk,
         sensoryProfile: analysis.sensoryProfile,
         tags: analysis.tags,
         calories: analysis.estimatedCalories,
@@ -68,14 +72,14 @@ export class MenuAnalysisProcessor {
       });
 
       this.logger.log(
-        `✅ Menu "${name}" updated: ${analysis.ingredients.length} ingredients, ${analysis.allergens.length} allergens, ${analysis.tags.length} tags`,
+        `✅ Menu "${name}" updated: ${analysis.ingredients.length} ingredients, ${analysis.hiddenIngredients.length} hidden ingredients, ${analysis.allergens.length} allergens, ${analysis.tags.length} tags`,
       );
       this.events.emit({
         type: 'completed',
         menuId,
         menuName: name,
         timestamp: new Date().toISOString(),
-        message: `Analysis complete: ${analysis.ingredients.length} ingredients, ${analysis.allergens.length} allergens, ${analysis.tags.length} tags`,
+        message: `Analysis complete: ${analysis.ingredients.length} ingredients, ${analysis.hiddenIngredients.length} hidden ingredients, ${analysis.allergens.length} allergens, ${analysis.tags.length} tags`,
       });
     } catch (error) {
       this.logger.error(

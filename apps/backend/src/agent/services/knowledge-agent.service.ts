@@ -12,7 +12,9 @@ import { NebiusProviderStrategy } from '../strategies/nebius-provider.strategy.j
 export const MENU_ANALYSIS_SCHEMA = z.object({
   description: z.string(),
   ingredients: z.array(z.string()),
+  hiddenIngredients: z.array(z.string()),
   allergens: z.array(z.enum(['kacang', 'susu', 'telur', 'seafood'])),
+  crossContaminationRisk: z.string().nullable(),
   sensoryProfile: z.array(
     z.enum(['renyah', 'lembut', 'hangat', 'aromatik']),
   ),
@@ -160,11 +162,13 @@ Analisis nama dan deskripsi menu makanan berdasarkan data dari web.
 Identifikasi:
 1. Deskripsi menu (description) — buat deskripsi yang kaya dan informatif dalam 2-3 kalimat, jelaskan bahan utama, tekstur, dan cita rasa
 2. Bahan-bahan utama (ingredients) — detil, pisahin per bahan
-3. Alergen yang mungkin terkandung (allergens) — pilih dari: kacang, susu, telur, seafood
+3. Bahan tersembunyi (hiddenIngredients) — bahan/alergen yang tidak terlihat langsung tetapi mungkin ada di bumbu, saus, kaldu, minyak, atau produk olahan. Tulis spesifik beserta sumbernya, contoh: "kedelai dan gluten pada kecap"
+4. Alergen yang mungkin terkandung (allergens) — pilih dari: kacang, susu, telur, seafood
    PERHATIAN: Santan/kelapa BUKAN alergen susu. Hanya susu sapi yg termasuk alergen susu.
-4. Tag cita rasa (tags) — pilih dari: spicy, savory, sweet, sour
-5. Karakter sensoris (sensoryProfile) — pilih dari: renyah, lembut, hangat, aromatik
-6. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin`,
+5. Risiko kontaminasi silang (crossContaminationRisk) — jelaskan singkat risiko dari alat masak, minyak goreng, atau area dapur bersama; null jika tidak ada indikasi
+6. Tag cita rasa (tags) — pilih dari: spicy, savory, sweet, sour
+7. Karakter sensoris (sensoryProfile) — pilih dari: renyah, lembut, hangat, aromatik
+8. Estimasi kalori per porsi (estimatedCalories) — null jika tidak yakin`,
       outputSchema: MENU_ANALYSIS_SCHEMA,
     });
 
@@ -259,6 +263,12 @@ Identifikasi:
               typeof ingredient === 'string',
           )
         : [];
+      const hiddenIngredients = Array.isArray(parsed.hiddenIngredients)
+        ? parsed.hiddenIngredients.filter(
+            (ingredient): ingredient is string =>
+              typeof ingredient === 'string',
+          )
+        : [];
 
       const sensoryProfile = normalizeEnumValues(
         parsed.sensoryProfile,
@@ -303,7 +313,13 @@ Identifikasi:
         description:
           typeof parsed.description === 'string' ? parsed.description : '',
         ingredients,
+        hiddenIngredients,
         allergens: validatedAllergens,
+        crossContaminationRisk:
+          typeof parsed.crossContaminationRisk === 'string' &&
+          parsed.crossContaminationRisk.trim()
+            ? parsed.crossContaminationRisk.trim()
+            : null,
         sensoryProfile,
         tags,
         estimatedCalories:
@@ -328,7 +344,9 @@ Identifikasi:
     return {
       description: '',
       ingredients: [],
+      hiddenIngredients: [],
       allergens: [],
+      crossContaminationRisk: null,
       sensoryProfile: [],
       tags: [],
       estimatedCalories: null,
